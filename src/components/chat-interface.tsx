@@ -75,8 +75,12 @@ export function ChatInterface() {
       text: (
         <div>
           <p className="mb-4">{aiResponse.initialResponse}</p>
-          <h4 className="font-bold mb-2">Here are some coping strategies that might help:</h4>
-          <p>{aiResponse.copingStrategies}</p>
+          {aiResponse.copingStrategies && (
+            <>
+              <h4 className="font-bold mb-2">Here are some coping strategies that might help:</h4>
+              <p>{aiResponse.copingStrategies}</p>
+            </>
+          )}
         </div>
       ),
     };
