@@ -8,6 +8,7 @@ Welcome to the CampusMind developer manual. This document provides a complete ov
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 - **UI Components:** [ShadCN UI](https://ui.shadcn.com/)
+- **Database & Auth:** [Firebase](https://firebase.google.com/) (Firestore, Auth)
 - **Generative AI:** [Firebase Genkit](https://firebase.google.com/docs/genkit)
 - **Forms:** [React Hook Form](https://react-hook-form.com/) with [Zod](https://zod.dev/) for validation
 
@@ -22,6 +23,7 @@ The project follows a standard Next.js App Router structure. Here is a breakdown
 ├── src
 │   ├── app
 │   │   ├── (main)                # Main application pages with shared layout
+│   │   │   ├── admin/page.tsx    # Admin dashboard for user management
 │   │   │   ├── booking/page.tsx
 │   │   │   ├── forum/page.tsx
 │   │   │   ├── profile/page.tsx
@@ -49,10 +51,12 @@ The project follows a standard Next.js App Router structure. Here is a breakdown
 │   │   └── use-toast.ts          # Hook for showing toast notifications
 │   │
 │   └── lib
+│       ├── firebase.ts           # Firebase SDK initialization and configuration
 │       ├── placeholder-images.json # Data for placeholder images
 │       ├── placeholder-images.ts   # Loader for placeholder image data
 │       └── utils.ts              # Utility functions (e.g., `cn` for classnames)
 │
+├── .env                          # Environment variables (including Firebase keys)
 ├── tailwind.config.ts            # Tailwind CSS configuration
 ├── next.config.ts                # Next.js configuration
 ├── package.json                  # Project dependencies and scripts
@@ -71,6 +75,7 @@ This directory contains all the routes and core layout of the application, follo
 -   **`(main)/`**: This is a route group that shares a common layout (`(main)/layout.tsx`).
     -   **`layout.tsx`**: Defines the main application shell, including the persistent sidebar navigation and the top header for mobile.
     -   **`page.tsx`**: The homepage of the app, which renders the `ChatInterface`.
+    -   **`/admin/page.tsx`**: The admin dashboard for managing users and other application data.
     -   **Other pages (`/booking`, `/forum`, etc.)**: Each folder represents a new page in the application, with `page.tsx` as its entry point.
 -   **`actions.ts`**: This file contains Next.js Server Actions. These are functions that run only on the server but can be called directly from client components. This is used to securely call the Genkit AI flows without exposing API endpoints.
 
@@ -95,10 +100,13 @@ This directory contains all reusable React components.
 These directories contain supporting code.
 
 -   **`hooks/`**: Custom React hooks used throughout the application.
--   **`lib/`**: Utility functions, TypeScript definitions, and data loaders. The `placeholder-images.json` is a good example of how static data is managed.
+-   **`lib/`**: Utility functions, TypeScript definitions, and data loaders.
+    - **`firebase.ts`**: Initializes the Firebase SDK. This file is the central point for accessing Firebase services like Auth and Firestore.
+    - `placeholder-images.json` is a good example of how static data is managed.
 
 ### Configuration Files
 
+-   **`.env`**: Stores environment variables, including the sensitive API keys for Firebase. **This file should not be committed to version control.**
 -   **`tailwind.config.ts`**: Defines the app's design system, including colors, fonts, and spacing, based on the ShadCN theme.
 -   **`next.config.ts`**: Configuration for the Next.js framework.
 -   **`components.json`**: Configuration for the ShadCN UI library, defining where components are stored and how they are aliased.
