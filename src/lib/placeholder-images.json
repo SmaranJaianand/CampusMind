@@ -1,3 +1,59 @@
+
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "video-1",
+      "description": "Guided meditation for stress relief",
+      "imageUrl": "https://picsum.photos/seed/v1/600/400",
+      "imageHint": "meditation nature"
+    },
+    {
+      "id": "video-2",
+      "description": "Understanding anxiety and how to cope",
+      "imageUrl": "https://picsum.photos/seed/v2/600/400",
+      "imageHint": "person thinking"
+    },
+    {
+      "id": "video-3",
+      "description": "Building healthy study habits",
+      "imageUrl": "https://picsum.photos/seed/v3/600/400",
+      "imageHint": "books desk"
+    },
+    {
+      "id": "audio-1",
+      "description": "Calming soundscape: Rainforest sounds",
+      "imageUrl": "https://picsum.photos/seed/a1/600/400",
+      "imageHint": "rainforest canopy"
+    },
+    {
+      "id": "audio-2",
+      "description": "Podcast: The importance of sleep for mental health",
+      "imageUrl": "https://picsum.photos/seed/a2/600/400",
+      "imageHint": "person sleeping"
+    },
+    {
+      "id": "audio-3",
+      "description": "Mindfulness exercise: 5-minute breathing",
+      "imageUrl": "https://picsum.photos/seed/a3/600/400",
+      "imageHint": "calm sea"
+    },
+    {
+      "id": "guide-1",
+      "description": "Article: How to deal with exam stress",
+      "imageUrl": "https://picsum.photos/seed/g1/600/400",
+      "imageHint": "student studying"
+    },
+    {
+      "id": "guide-2",
+      "description": "Guide: Navigating social life on campus",
+      "imageUrl": "https://picsum.photos/seed/g2/600/400",
+      "imageHint": "friends talking"
+    },
+    {
+      "id": "guide-3",
+      "description": "Checklist: Creating a daily wellness routine",
+      "imageUrl": "https://picsum.photos/seed/g3/600/400",
+      "imageHint": "notebook pen"
+    }
+  ]
 }
