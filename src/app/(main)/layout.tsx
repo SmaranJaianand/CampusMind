@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   PanelLeft,
   User,
+  Shield,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/resources', label: 'Resource Hub', icon: Library },
   { href: '/forum', label: 'Forum', icon: MessagesSquare },
   { href: '/profile', label: 'Profile', icon: User },
+  { href: '/admin', label: 'Admin', icon: Shield },
 ];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
