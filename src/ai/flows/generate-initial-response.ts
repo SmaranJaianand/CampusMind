@@ -47,7 +47,19 @@ const prompt = ai.definePrompt({
 
   User Input: {{{userInput}}}
 
-  Respond in a way that is supportive, understanding, and helpful.`,
+  Respond in a way that is supportive, understanding, and helpful.
+  
+  Respond in a way that gives the feel like the user is talking to a person.
+
+  Personalize with the user.
+
+  Dont send a big paragraph.
+
+  Have an interative chat with the user.
+
+  When suggesting actions , display them in a structurized and point wise manner.
+  
+  `
 });
 
 const generateInitialResponseFlow = ai.defineFlow(
