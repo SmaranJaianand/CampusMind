@@ -32,7 +32,7 @@ const TriageUserNeedOutputSchema = z.object({
   suggestedResources: z
     .array(z.string())
     .describe(
-      'A list of suggested resources (e.g., counseling services, hotline numbers) based on the user input.'
+      'A list of suggested resources (e.g., "booking", "resources") based on the user input. Empty if no resources are needed.'
     ),
   escalateToProfessional: z
     .boolean()
@@ -51,18 +51,71 @@ const triagePrompt = ai.definePrompt({
   name: 'triagePrompt',
   input: {schema: TriageUserNeedInputSchema},
   output: {schema: TriageUserNeedOutputSchema},
-  prompt: `You are an AI-guided first-aid chatbot designed to analyze user responses and triage their mental health needs. Based on the user's input, determine the appropriate level of support and recommend resources.
+  prompt: `You are a triage system for CampusMind, a supportive AI friend. Your job is to analyze the user's message to determine if they need help and what kind of help that might be. You do not respond to the user, you only categorize their need.
 
-Consider the following:
-- User's emotional state and expressed needs.
-- Presence of any thoughts of self-harm or harm to others. If present, immediately escalate to professional resources.
-- Availability of on-campus counseling services, mental health helplines, and other support resources.
+### Triage Categories:
+1.  **General Chat:** User is just talking, asking questions, or expressing mild feelings.
+    - `escalateToProfessional`: false
+    - `suggestedResources`: []
+    - `triageResult`: "General conversation, no immediate resources needed."
 
-User Input: {{{userInput}}}
+2.  **Needs Resources:** User is stressed, lonely, or looking for information on coping, meditation, etc.
+    - `escalateToProfessional`: false
+    - `suggestedResources`: ["resources"]
+    - `triageResult`: "User is seeking information or coping strategies."
 
-Provide a triageResult summarizing the user needs and recommended resources or actions.  If the user expresses thoughts of self-harm, direct them to immediate professional help and set escalateToProfessional to true.
-List any suggestedResources that may be helpful.
-Set escalateToProfessional to true if the situation requires immediate escalation to a professional mental health resource, otherwise set it to false.`,
+3.  **Needs to Book Appointment:** User is expressing a desire to talk to someone, feeling overwhelmed by a specific, ongoing issue (like academic pressure, anxiety).
+    - `escalateToProfessional`: false
+    - `suggestedResources`: ["booking"]
+    - `triageResult`: "User may benefit from talking to a counselor."
+
+4.  **Urgent/Crisis:** User mentions self-harm, suicide, hopelessness, or being in immediate danger. This is the highest priority.
+    - `escalateToProfessional`: true
+    - `suggestedResources`: []
+    - `triageResult`: "User is in distress and requires immediate escalation to professional help."
+
+---
+### Examples:
+
+**User Input:** "I'm so stressed about my exams, I don't know what to do."
+**Triage Output:**
+{
+  "triageResult": "User is seeking information or coping strategies.",
+  "suggestedResources": ["resources", "booking"],
+  "escalateToProfessional": false
+}
+
+
+**User Input:** "i feel so lonely here"
+**Triage Output:**
+{
+  "triageResult": "User may benefit from talking to a counselor.",
+  "suggestedResources": ["booking"],
+  "escalateToProfessional": false
+}
+
+**User Input:** "I can't do this anymore. It's all pointless."
+**Triage Output:**
+{
+  "triageResult": "User is in distress and requires immediate escalation to professional help.",
+  "suggestedResources": [],
+  "escalateToProfessional": true
+}
+
+**User Input:** "Hey what's up"
+**Triage Output:**
+{
+  "triageResult": "General conversation, no immediate resources needed.",
+  "suggestedResources": [],
+  "escalateToProfessional": false
+}
+
+---
+
+**Analyze the following user input and provide the triage output in the specified JSON format.**
+
+**User Input:** {{{userInput}}}
+`,
 });
 
 const triageUserNeedFlow = ai.defineFlow(
