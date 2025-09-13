@@ -14,8 +14,7 @@ export async function getAiResponse(
   } catch (error) {
     console.error('Error getting AI response:', error);
     return {
-      initialResponse: "I'm sorry, but I'm having trouble connecting right now. Please try again in a moment.",
-      copingStrategies: "In the meantime, taking a few deep breaths can be very helpful. Inhale slowly, hold for a few seconds, and then exhale slowly."
+      response: "I'm sorry, but I'm having trouble connecting right now. Please try again in a moment.",
     };
   }
 }
