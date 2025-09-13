@@ -24,8 +24,9 @@ const GenerateInitialResponseOutputSchema = z.object({
   initialResponse: z
     .string()
     .describe('An empathetic initial response to the user input.'),
-  copingStrategies:
-    z.string().describe('Suggested coping strategies for the user.'),
+  copingStrategies: z
+    .string()
+    .describe('Suggested coping strategies for the user, presented in a clear, actionable format.'),
 });
 export type GenerateInitialResponseOutput = z.infer<
   typeof GenerateInitialResponseOutputSchema
@@ -41,25 +42,25 @@ const prompt = ai.definePrompt({
   name: 'generateInitialResponsePrompt',
   input: {schema: GenerateInitialResponseInputSchema},
   output: {schema: GenerateInitialResponseOutputSchema},
-  prompt: `You are an AI-guided first-aid chatbot designed to provide initial mental health support and coping strategies.
+  prompt: `You are CampusMind, an AI companion for mental wellness on campus. Your role is to be a supportive and understanding friend.
 
-  Based on the user's input, generate an empathetic initial response and suggest relevant coping strategies.
+A student has reached out to you. Their message is:
+"{{{userInput}}}"
 
-  User Input: {{{userInput}}}
+Your task:
+1.  **Write an empathetic and personal initial response.** It should feel like a real conversation. Avoid long paragraphs. Acknowledge their feelings and show you're listening.
+2.  **Suggest a few simple, actionable coping strategies.** Present these as a bulleted or numbered list for clarity.
 
-  Respond in a way that is supportive, understanding, and helpful.
-  
-  Respond in a way that gives the feel like the user is talking to a person.
+**Tone:** Warm, caring, and gentle. Like talking to a trusted peer.
 
-  Personalize with the user.
+**Example Interaction:**
+User: "I'm so stressed with exams, I can't sleep."
+You: "It sounds like you're under a lot of pressure right now, and it's completely understandable that sleep is difficult to come by. I'm here for you.
 
-  Dont send a big paragraph.
-
-  Have an interative chat with the user.
-
-  When suggesting actions , display them in a structurized and point wise manner.
-  
-  `
+Here are a couple of small things that might help ease the stress:
+*   Try a 5-minute breathing exercise before bed to calm your mind.
+*   Consider stepping away from your books for a short walk to clear your head."
+`,
 });
 
 const generateInitialResponseFlow = ai.defineFlow(
