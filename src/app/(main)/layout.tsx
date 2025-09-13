@@ -9,6 +9,7 @@ import {
   Library,
   MessagesSquare,
   PanelLeft,
+  User,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/booking', label: 'Booking', icon: CalendarDays },
   { href: '/resources', label: 'Resource Hub', icon: Library },
   { href: '/forum', label: 'Forum', icon: MessagesSquare },
+  { href: '/profile', label: 'Profile', icon: User },
 ];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
