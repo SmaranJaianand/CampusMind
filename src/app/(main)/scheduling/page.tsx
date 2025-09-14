@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function SchedulingPage() {
 
@@ -18,32 +19,42 @@ export default function SchedulingPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Tasks</CardTitle>
-              <CardDescription>
-                List the tasks you need to get done. One per line.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Textarea placeholder="- Finish math assignment&#x0a;- Do laundry&#x0a;- Read one chapter" rows={5} />
-            </CardContent>
-            <CardFooter>
-              <Button>Generate Schedule</Button>
-            </CardFooter>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Consultation Notes (Placeholder)</CardTitle>
-              <CardDescription>
-                The AI will use these notes to understand your current capacity.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm text-muted-foreground">
-              <p className="font-semibold">Summary from Dr. Carter:</p>
-              <p>"Patient has been feeling increased anxiety around academic deadlines. Recommended breaking tasks into smaller, more manageable steps and incorporating short breaks."</p>
-            </CardContent>
-          </Card>
+            <Tabs defaultValue="tasks" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="tasks">Your Tasks</TabsTrigger>
+                    <TabsTrigger value="notes">Consultation</TabsTrigger>
+                </TabsList>
+                <TabsContent value="tasks">
+                    <Card>
+                        <CardHeader>
+                        <CardTitle>Your Tasks</CardTitle>
+                        <CardDescription>
+                            List the tasks you need to get done, one per line. The AI will break them down for you.
+                        </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <Textarea placeholder="- Finish math assignment&#x0a;- Do laundry&#x0a;- Read one chapter" rows={5} />
+                        </CardContent>
+                        <CardFooter>
+                        <Button>Generate Schedule</Button>
+                        </CardFooter>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="notes">
+                     <Card>
+                        <CardHeader>
+                        <CardTitle>Consultation Notes</CardTitle>
+                        <CardDescription>
+                            The AI uses these notes to understand your capacity. (This is a placeholder).
+                        </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-2 text-sm text-muted-foreground">
+                        <p className="font-semibold">Summary from Dr. Carter:</p>
+                        <p>"Patient has been feeling increased anxiety around academic deadlines. Recommended breaking tasks into smaller, more manageable steps and incorporating short breaks."</p>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
 
         <div className="lg:col-span-2">
@@ -82,7 +93,7 @@ export default function SchedulingPage() {
                   <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-secondary-foreground/50" />
                     <p className="font-semibold">1:30 PM - 2:00 PM: Start Laundry</p>
-                    <p className="text-sm text-muted-foreground">Just gather and sort. A small, easy win.</p>
+                    <p className="text-sm text-muted-foreground">A small, easy win to get you going.</p>
                   </div>
                    <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-primary" />
