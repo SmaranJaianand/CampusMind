@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Pencil } from 'lucide-react';
 
 export default function SchedulingPage() {
 
@@ -51,18 +53,48 @@ export default function SchedulingPage() {
                 <div className="space-y-4 border-l-2 border-primary/20 pl-4 ml-2">
                   <div className="relative">
                     <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-primary" />
-                    <p className="font-semibold">9:30 AM - 10:15 AM: Work on Math Assignment (Part 1)</p>
-                    <p className="text-sm text-muted-foreground">Focus on the first two problems. It's okay if it's not perfect.</p>
+                    <div className="flex items-start gap-4">
+                      <Checkbox id="task-1" className="mt-1" />
+                      <div className="grid gap-1.5">
+                         <div className="flex items-center gap-2">
+                           <p className="font-semibold">9:30 AM - 10:15 AM: Work on Math Assignment (Part 1)</p>
+                           <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Pencil className="h-3 w-3" />
+                           </Button>
+                         </div>
+                        <p className="text-sm text-muted-foreground">Focus on the first two problems. It's okay if it's not perfect.</p>
+                      </div>
+                    </div>
                   </div>
                    <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-secondary-foreground/50" />
-                    <p className="font-semibold">10:15 AM - 10:45 AM: Mindful Break</p>
-                    <p className="text-sm text-muted-foreground">Listen to some music or go for a short walk.</p>
+                     <div className="flex items-start gap-4">
+                       <Checkbox id="break-1" className="mt-1" />
+                        <div className="grid gap-1.5">
+                           <div className="flex items-center gap-2">
+                            <p className="font-semibold">10:15 AM - 10:45 AM: Mindful Break</p>
+                             <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <Pencil className="h-3 w-3" />
+                             </Button>
+                           </div>
+                          <p className="text-sm text-muted-foreground">Listen to some music or go for a short walk.</p>
+                        </div>
+                     </div>
                   </div>
                    <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-primary" />
-                    <p className="font-semibold">10:45 AM - 11:30 AM: Read Chapter (First Half)</p>
-                    <p className="text-sm text-muted-foreground">Just get through the first few pages to build momentum.</p>
+                     <div className="flex items-start gap-4">
+                        <Checkbox id="task-2" className="mt-1" />
+                        <div className="grid gap-1.5">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold">10:45 AM - 11:30 AM: Read Chapter (First Half)</p>
+                               <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Pencil className="h-3 w-3" />
+                               </Button>
+                            </div>
+                          <p className="text-sm text-muted-foreground">Just get through the first few pages to build momentum.</p>
+                        </div>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -72,13 +104,33 @@ export default function SchedulingPage() {
                 <div className="space-y-4 border-l-2 border-primary/20 pl-4 ml-2">
                   <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-secondary-foreground/50" />
-                    <p className="font-semibold">1:30 PM - 2:00 PM: Start Laundry</p>
-                    <p className="text-sm text-muted-foreground">A small, easy win to get you going.</p>
+                     <div className="flex items-start gap-4">
+                      <Checkbox id="task-3" className="mt-1" />
+                      <div className="grid gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold">1:30 PM - 2:00 PM: Start Laundry</p>
+                           <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Pencil className="h-3 w-3" />
+                           </Button>
+                        </div>
+                        <p className="text-sm text-muted-foreground">A small, easy win to get you going.</p>
+                      </div>
+                     </div>
                   </div>
                    <div className="relative">
                      <div className="absolute -left-[27px] top-1 h-4 w-4 rounded-full bg-primary" />
-                    <p className="font-semibold">2:00 PM - 2:45 PM: Work on Math Assignment (Part 2)</p>
-                    <p className="text-sm text-muted-foreground">Try the next problem. Remember what Dr. Carter said about small steps.</p>
+                      <div className="flex items-start gap-4">
+                        <Checkbox id="task-4" className="mt-1" />
+                        <div className="grid gap-1.5">
+                           <div className="flex items-center gap-2">
+                            <p className="font-semibold">2:00 PM - 2:45 PM: Work on Math Assignment (Part 2)</p>
+                             <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <Pencil className="h-3 w-3" />
+                             </Button>
+                           </div>
+                          <p className="text-sm text-muted-foreground">Try the next problem. Remember what Dr. Carter said about small steps.</p>
+                        </div>
+                      </div>
                   </div>
                 </div>
               </div>
