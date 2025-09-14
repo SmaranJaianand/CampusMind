@@ -23,6 +23,7 @@ import {
   Shield,
   Siren,
   CalendarCheck,
+  FileText,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', label: 'AI First-Aid', icon: Bot },
   { href: '/scheduling', label: 'Scheduling AI', icon: CalendarCheck },
+  { href: '/consultations', label: 'Consultations', icon: FileText },
   { href: '/booking', label: 'Booking', icon: CalendarDays },
   { href: '/resources', label: 'Resource Hub', icon: Library },
   { href: '/forum', label: 'Forum', icon: MessagesSquare },

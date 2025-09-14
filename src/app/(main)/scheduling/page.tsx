@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function SchedulingPage() {
 
@@ -19,42 +18,23 @@ export default function SchedulingPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-1 space-y-6">
-            <Tabs defaultValue="tasks" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="tasks">Your Tasks</TabsTrigger>
-                    <TabsTrigger value="notes">Consultation</TabsTrigger>
-                </TabsList>
-                <TabsContent value="tasks">
-                    <Card>
-                        <CardHeader>
-                        <CardTitle>Your Tasks</CardTitle>
-                        <CardDescription>
-                            List the tasks you need to get done, one per line. The AI will break them down for you.
-                        </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                        <Textarea placeholder="- Finish math assignment&#x0a;- Do laundry&#x0a;- Read one chapter" rows={5} />
-                        </CardContent>
-                        <CardFooter>
-                        <Button>Generate Schedule</Button>
-                        </CardFooter>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="notes">
-                     <Card>
-                        <CardHeader>
-                        <CardTitle>Consultation Notes</CardTitle>
-                        <CardDescription>
-                            The AI uses these notes to understand your capacity. (This is a placeholder).
-                        </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-2 text-sm text-muted-foreground">
-                        <p className="font-semibold">Summary from Dr. Carter:</p>
-                        <p>"Patient has been feeling increased anxiety around academic deadlines. Recommended breaking tasks into smaller, more manageable steps and incorporating short breaks."</p>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+            <Card>
+                <CardHeader>
+                <CardTitle>Your Tasks</CardTitle>
+                <CardDescription>
+                    List the tasks you need to get done, one per line. The AI will break them down for you.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Textarea placeholder="- Finish math assignment&#x0a;- Do laundry&#x0a;- Read one chapter" rows={5} />
+                </CardContent>
+                <CardFooter>
+                <Button>Generate Schedule</Button>
+                </CardFooter>
+            </Card>
+             <p className="text-sm text-center text-muted-foreground px-4">
+                You can import a consultation summary from the 'Consultations' tab to give the AI more context about your current needs.
+            </p>
         </div>
 
         <div className="lg:col-span-2">
