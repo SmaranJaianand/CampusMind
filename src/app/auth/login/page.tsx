@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
@@ -17,10 +18,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { auth, googleProvider } from '@/lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber, signInWithPopup } from 'firebase/auth';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 
 const initialLoginState: LoginState = {
@@ -37,45 +37,6 @@ function SubmitButton() {
   );
 }
 
-function GoogleSignInButton() {
-  const { pending } = useFormStatus();
-    const { toast } = useToast();
-    const [error, setError] = useState<string | null>(null);
-
-    const handleGoogleSignIn = async () => {
-        setError(null);
-        try {
-            await signInWithPopup(auth, googleProvider);
-            // The useEffect will handle the redirect on auth state change.
-             toast({
-                title: "Login Successful!",
-                description: "You've successfully signed in with Google.",
-                variant: 'default',
-            });
-        } catch (error: any) {
-            setError('Failed to sign in with Google. Please try again.');
-            console.error(error);
-        }
-    };
-
-  return (
-    <>
-      {error && (
-        <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Google Sign-In Failed</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-      <Button variant="outline" type="button" className="w-full" disabled={pending} onClick={handleGoogleSignIn}>
-          <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.2 0 128.5 110.3 18.2 244 18.2c71.2 0 130.3 27.8 174.2 68.9l-65.7 64.3C308.1 120.9 278.4 104 244 104c-63.9 0-116.3 52.4-116.3 116.3s52.4 116.3 116.3 116.3c70.4 0 98.8-52.8 102.7-77.9H244V261.8h244z"></path></svg>
-        Sign in with Google
-      </Button>
-    </>
-  );
-}
-
-
 export default function LoginPage() {
   const [state, formAction] = useFormState(login, initialLoginState);
   const router = useRouter();
@@ -87,6 +48,9 @@ export default function LoginPage() {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+  
+  type AuthMethod = 'email' | 'phone' | null;
+  const [authMethod, setAuthMethod] = useState<AuthMethod>(null);
 
 
   useEffect(() => {
@@ -104,19 +68,31 @@ export default function LoginPage() {
 
   const setupRecaptcha = () => {
     if (!recaptchaContainerRef.current) return;
-    // Clear previous verifier if it exists
     if ((window as any).recaptchaVerifier) {
       (window as any).recaptchaVerifier.clear();
     }
     const verifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
         'size': 'invisible',
-        'callback': (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-        }
+        'callback': () => {},
     });
     (window as any).recaptchaVerifier = verifier;
     return verifier;
   }
+  
+  const handleGoogleSignIn = async () => {
+    setPhoneAuthError(null);
+    try {
+        await signInWithPopup(auth, googleProvider);
+        toast({
+            title: "Login Successful!",
+            description: "You've successfully signed in with Google.",
+        });
+        router.replace('/');
+    } catch (error: any) {
+        setPhoneAuthError('Failed to sign in with Google. Please try again.');
+        console.error(error);
+    }
+  };
 
   const handleSendOtp = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -133,7 +109,6 @@ export default function LoginPage() {
       } catch (error: any) {
           console.error("Phone auth error:", error);
           setPhoneAuthError(error.message || 'Failed to send verification code. Please check the number and try again.');
-          // Reset reCAPTCHA on error
           if ((window as any).recaptchaVerifier) {
             (window as any).recaptchaVerifier.render().then((widgetId: any) => {
                 (window as any).grecaptcha.reset(widgetId);
@@ -152,10 +127,7 @@ export default function LoginPage() {
       try {
           await confirmationResult.confirm(otp);
           toast({ title: 'Phone Login Successful!', description: "You've successfully signed in." });
-          const timer = setTimeout(() => {
-              router.replace('/');
-          }, 1500);
-          return () => clearTimeout(timer);
+          router.replace('/');
       } catch (error: any) {
           console.error("OTP verification error:", error);
           setPhoneAuthError(error.message || 'Invalid verification code. Please try again.');
@@ -163,73 +135,10 @@ export default function LoginPage() {
           setIsVerifyingOtp(false);
       }
   };
-
-
-  return (
-    <Card className="w-full max-w-sm">
-       <div ref={recaptchaContainerRef}></div>
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
-          Choose a sign-in method to access your account.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        {state.message && !state.success && (
-          <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Login Failed</AlertTitle>
-            <AlertDescription>{state.message}</AlertDescription>
-          </Alert>
-        )}
-        <GoogleSignInButton />
-
-        <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-                </span>
-            </div>
-        </div>
-        
-        {/* Phone Auth */}
-        {!confirmationResult ? (
-          <form onSubmit={handleSendOtp} className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" name="phone" type="tel" placeholder="+1 123 456 7890" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isSendingOtp} />
-              </div>
-              <Button type="submit" className="w-full" disabled={isSendingOtp}>
-                {isSendingOtp ? 'Sending Code...' : 'Login with Phone'}
-              </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyOtp} className="grid gap-4">
-             <div className="grid gap-2">
-                <Label htmlFor="otp">Verification Code</Label>
-                <Input id="otp" name="otp" type="text" placeholder="Enter 6-digit code" required value={otp} onChange={(e) => setOtp(e.target.value)} disabled={isVerifyingOtp} />
-              </div>
-              <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
-                {isVerifyingOtp ? 'Verifying...' : 'Verify & Sign In'}
-              </Button>
-              <Button variant="link" size="sm" onClick={() => setConfirmationResult(null)}>
-                Back to other login methods
-              </Button>
-          </form>
-        )}
-        {phoneAuthError && (
-             <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Phone Sign-In Failed</AlertTitle>
-                <AlertDescription>{phoneAuthError}</AlertDescription>
-            </Alert>
-        )}
-
-        <Separator />
-
+  
+  const renderAuthMethod = () => {
+    if (authMethod === 'email') {
+      return (
          <form action={formAction} className="grid gap-4">
             <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -241,6 +150,82 @@ export default function LoginPage() {
             </div>
              <SubmitButton />
         </form>
+      )
+    }
+    
+    if (authMethod === 'phone') {
+       return !confirmationResult ? (
+          <form onSubmit={handleSendOtp} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" name="phone" type="tel" placeholder="+1 123 456 7890" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isSendingOtp} />
+              </div>
+              <Button type="submit" className="w-full" disabled={isSendingOtp}>
+                {isSendingOtp ? 'Sending Code...' : 'Send Verification Code'}
+              </Button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyOtp} className="grid gap-4">
+             <div className="grid gap-2">
+                <Label htmlFor="otp">Verification Code</Label>
+                <Input id="otp" name="otp" type="text" placeholder="Enter 6-digit code" required value={otp} onChange={(e) => setOtp(e.target.value)} disabled={isVerifyingOtp} />
+              </div>
+              <Button type="submit" className="w-full" disabled={isVerifyingOtp}>
+                {isVerifyingOtp ? 'Verifying...' : 'Verify & Sign In'}
+              </Button>
+          </form>
+        )
+    }
+    
+    return (
+        <div className="grid gap-4">
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleSignIn}>
+                 <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 110.3 512 0 401.7 0 265.2 0 128.5 110.3 18.2 244 18.2c71.2 0 130.3 27.8 174.2 68.9l-65.7 64.3C308.1 120.9 278.4 104 244 104c-63.9 0-116.3 52.4-116.3 116.3s52.4 116.3 116.3 116.3c70.4 0 98.8-52.8 102.7-77.9H244V261.8h244z"></path></svg>
+                Sign in with Google
+            </Button>
+             <Button variant="outline" type="button" className="w-full" onClick={() => setAuthMethod('phone')}>
+                Sign in with Phone
+            </Button>
+             <Button variant="outline" type="button" className="w-full" onClick={() => setAuthMethod('email')}>
+                Sign in with Email
+            </Button>
+        </div>
+    )
+  }
+
+
+  return (
+    <Card className="w-full max-w-sm">
+       <div ref={recaptchaContainerRef}></div>
+      <CardHeader>
+          {authMethod && (
+            <Button variant="ghost" size="sm" className="absolute top-4 left-4 h-7 w-7 p-0" onClick={() => { setAuthMethod(null); setConfirmationResult(null); setPhoneAuthError(null); }}>
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+        <CardTitle className="text-2xl text-center">Login</CardTitle>
+        <CardDescription className="text-center">
+          {authMethod ? `Use your ${authMethod} to sign in.` : 'Choose a sign-in method to access your account.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        {state.message && !state.success && (
+          <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Login Failed</AlertTitle>
+            <AlertDescription>{state.message}</AlertDescription>
+          </Alert>
+        )}
+        {phoneAuthError && (
+             <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Sign-In Failed</AlertTitle>
+                <AlertDescription>{phoneAuthError}</AlertDescription>
+            </Alert>
+        )}
+
+        {renderAuthMethod()}
+
       </CardContent>
       <CardFooter className="flex flex-col gap-4">
         <p className="text-center text-sm text-muted-foreground">
@@ -253,5 +238,3 @@ export default function LoginPage() {
     </Card>
   );
 }
-
-    
