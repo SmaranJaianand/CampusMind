@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile,
 } from 'firebase/auth';
 import { z } from 'zod';
 
@@ -40,7 +41,12 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
   const { email, password } = result.data;
 
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Set admin display name if it's the admin email
+    if (email === 'admin@campusmind.app') {
+      await updateProfile(userCredential.user, { displayName: 'Admin' });
+    }
+
     return { success: true, message: 'Signup successful! Redirecting...' };
   } catch (error: any) {
     let message = 'An unknown error occurred.';
@@ -69,6 +75,25 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
   const { email, password } = result.data;
 
+   if (email === 'admin@campusmind.app' && password === 'adminpwd') {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        return { success: true, message: 'Admin login successful!' };
+      } catch (error: any) {
+         // If admin user does not exist, create it
+        if (error.code === 'auth/user-not-found') {
+          try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(userCredential.user, { displayName: 'Admin' });
+            return { success: true, message: 'Admin account created and logged in!' };
+          } catch (createError: any) {
+            return { success: false, message: 'Failed to create admin account.' };
+          }
+        }
+        return { success: false, message: 'Admin login failed.' };
+      }
+  }
+
   try {
     await signInWithEmailAndPassword(auth, email, password);
     return { success: true, message: 'Login successful!' };
@@ -85,4 +110,40 @@ export async function logout() {
   }
 }
 
+const profileUpdateSchema = z.object({
+  displayName: z.string().optional(),
+  photoURL: z.string().url().optional(),
+});
+
+export type ProfileUpdateState = {
+  success: boolean;
+  message: string;
+};
+
+export async function updateUserProfile(data: { displayName?: string, photoURL?: string }): Promise<ProfileUpdateState> {
+    const user = auth.currentUser;
+    if (!user) {
+        return { success: false, message: "You must be logged in to update your profile." };
+    }
+
+    const result = profileUpdateSchema.safeParse(data);
+    if (!result.success) {
+        return { success: false, message: result.error.errors.map((e) => e.message).join(' ') };
+    }
+
+    try {
+        const updateData: { displayName?: string, photoURL?: string } = {};
+        if (result.data.displayName) {
+            updateData.displayName = result.data.displayName;
+        }
+        if (result.data.photoURL) {
+            updateData.photoURL = result.data.photoURL;
+        }
+
+        await updateProfile(user, updateData);
+        return { success: true, message: 'Profile updated successfully.' };
+    } catch (error: any) {
+        return { success: false, message: 'Failed to update profile.' };
+    }
+}
     
