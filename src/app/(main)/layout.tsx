@@ -29,6 +29,8 @@ import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 const navItems = [
   { href: '/', label: 'AI First-Aid', icon: Bot },
@@ -70,6 +72,26 @@ function EmergencyDialog() {
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <Logo className="h-12 w-12 text-primary animate-pulse" />
+                <p className="text-muted-foreground">Loading your experience...</p>
+            </div>
+      </div>
+    );
+  }
+
 
   const NavLinks = () => (
     <nav className="grid items-start gap-2 text-sm font-medium">

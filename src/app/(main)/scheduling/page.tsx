@@ -13,9 +13,9 @@ export default function SchedulingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-headline text-3xl md:text-4xl">Scheduling AI</h1>
+        <h1 className="font-headline text-3xl md:text-4xl">Scheduling Buddy</h1>
         <p className="text-muted-foreground mt-2">
-          A soft task scheduler to help you organize your day without feeling overwhelmed.
+          A soft task buddy to help you organize your day without feeling overwhelmed.
         </p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
