@@ -98,6 +98,13 @@ export default function LoginPage() {
       e.preventDefault();
       setPhoneAuthError(null);
       setIsSendingOtp(true);
+      
+      if (!/^\+[1-9]\d{1,14}$/.test(phone)) {
+        setPhoneAuthError("Invalid phone number format. Please use E.164 format (e.g., +11234567890).");
+        setIsSendingOtp(false);
+        return;
+      }
+
       try {
         const appVerifier = setupRecaptcha();
         if (!appVerifier) {
@@ -158,7 +165,7 @@ export default function LoginPage() {
           <form onSubmit={handleSendOtp} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" name="phone" type="tel" placeholder="+1 123 456 7890" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isSendingOtp} />
+                <Input id="phone" name="phone" type="tel" placeholder="+11234567890" required value={phone} onChange={(e) => setPhone(e.target.value)} disabled={isSendingOtp} />
               </div>
               <Button type="submit" className="w-full" disabled={isSendingOtp}>
                 {isSendingOtp ? 'Sending Code...' : 'Send Verification Code'}
