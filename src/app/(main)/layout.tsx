@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -31,6 +33,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const navItems = [
   { href: '/', label: 'AI First-Aid', icon: Bot },
@@ -43,25 +47,45 @@ const navItems = [
   { href: '/admin', label: 'Admin', icon: Shield },
 ];
 
-function EmergencyDialog() {
+function EmergencyDialog({ isMobile = false }: { isMobile?: boolean }) {
+  const [customNumber, setCustomNumber] = React.useState('1-800-273-8255');
+  const dialogId = isMobile ? 'mobile' : 'desktop';
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" className="w-full">
-          <Siren className="mr-2 h-4 w-4" />
-          SOS - Immediate Help
-        </Button>
+        {isMobile ? (
+          <Button variant="destructive" size="icon">
+            <Siren className="h-5 w-5" />
+            <span className="sr-only">SOS</span>
+          </Button>
+        ) : (
+          <Button variant="destructive" className="w-full">
+            <Siren className="mr-2 h-4 w-4" />
+            SOS - Immediate Help
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you in immediate distress?</AlertDialogTitle>
           <AlertDialogDescription>
-            If this is an emergency, please use this feature to connect with a crisis counselor immediately. This service is anonymous and available 24/7.
+            This service connects you to a crisis counselor. If you are not in the US, please enter your local emergency number below.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="py-4">
+          <Label htmlFor={`custom-number-${dialogId}`}>Emergency Number</Label>
+          <Input 
+            id={`custom-number-${dialogId}`}
+            value={customNumber}
+            onChange={(e) => setCustomNumber(e.target.value)}
+            placeholder="Enter phone number"
+          />
+        </div>
         <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Link href="#">Connect to Crisis Line</Link>
+            <Link href={`tel:${customNumber.replace(/\s/g, '')}`}>Connect to Crisis Line</Link>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -163,27 +187,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               <span className="font-headline text-lg md:hidden">CampusMind</span>
             </div>
              <div className="ml-auto">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
-                      <Siren className="h-5 w-5" />
-                       <span className="sr-only">SOS</span>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you in immediate distress?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        If this is an emergency, please use this feature to connect with a crisis counselor immediately. This service is anonymous and available 24/7.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                       <AlertDialogAction asChild>
-                        <Link href="#">Connect to Crisis Line</Link>
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <EmergencyDialog isMobile={true} />
             </div>
         </header>
         <main className="flex-1 overflow-auto p-4 sm:p-6 md:p-8">
