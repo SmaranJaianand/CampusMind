@@ -36,6 +36,9 @@ import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { sendSupportEmail } from '../actions';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
 
 const navItems = [
   { href: '/', label: 'AI First-Aid', icon: Bot },
@@ -49,12 +52,40 @@ const navItems = [
 ];
 
 function EmergencyDialog({ isMobile = false }: { isMobile?: boolean }) {
-  const [customNumber, setCustomNumber] = React.useState('1-800-273-8255');
-  const [customEmail, setCustomEmail] = React.useState('support@campus.test');
-  const dialogId = isMobile ? 'mobile' : 'desktop';
+  const { toast } = useToast();
+  const [isPending, startTransition] = React.useTransition();
+  const { user } = useAuth();
+  const [open, setOpen] = React.useState(false);
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    // Add user's email to the form data
+    if (user?.email) {
+      formData.append('fromEmail', user.email);
+    }
+    
+    startTransition(async () => {
+      const result = await sendSupportEmail(formData);
+      if (result.success) {
+        toast({
+          title: 'Email Sent!',
+          description: 'Your request for support has been sent successfully.',
+        });
+        setOpen(false);
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to Send Email',
+          description: result.message,
+        });
+      }
+    });
+  };
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         {isMobile ? (
           <Button variant="destructive" size="icon">
@@ -69,40 +100,53 @@ function EmergencyDialog({ isMobile = false }: { isMobile?: boolean }) {
         )}
       </AlertDialogTrigger>
       <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Are you in immediate distress?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This service will open your default email client to connect you with support. Enter the email address you want to contact below.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="py-4 space-y-4">
-           <div className="grid gap-2">
-            <Label htmlFor={`custom-email-${dialogId}`}>Support Email</Label>
-            <Input 
-              id={`custom-email-${dialogId}`}
-              type="email"
-              value={customEmail}
-              onChange={(e) => setCustomEmail(e.target.value)}
-              placeholder="Enter support email"
-            />
-           </div>
-          <div className="grid gap-2">
-            <Label htmlFor={`custom-number-${dialogId}`}>Emergency Phone Number (For Reference)</Label>
-            <Input 
-              id={`custom-number-${dialogId}`}
-              value={customNumber}
-              onChange={(e) => setCustomNumber(e.target.value)}
-              placeholder="Enter phone number"
-              disabled
-            />
+        <form onSubmit={handleSubmit}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Request Immediate Support</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send an email to the support team on your behalf. Please describe your situation.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-4">
+             <div className="grid gap-2">
+              <Label htmlFor="toEmail">Support Email</Label>
+              <Input 
+                id="toEmail"
+                name="toEmail"
+                type="email"
+                defaultValue="support@campus.test"
+                placeholder="Enter support email"
+                required
+              />
+             </div>
+             <div className="grid gap-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Input 
+                id="subject"
+                name="subject"
+                defaultValue="Urgent Support Needed"
+                placeholder="Subject"
+                required
+              />
+             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="body">Message</Label>
+              <Textarea 
+                id="body"
+                name="body"
+                placeholder="Please describe your situation..."
+                required
+                rows={4}
+              />
+            </div>
           </div>
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Link href={`mailto:${customEmail}?subject=Urgent%20Support%20Needed&body=I%20am%20reaching%20out%20for%20immediate%20support.`}>Connect to Support</Link>
-          </AlertDialogAction>
-        </AlertDialogFooter>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Sending...' : 'Send Support Email'}
+            </Button>
+          </AlertDialogFooter>
+        </form>
       </AlertDialogContent>
     </AlertDialog>
   );
