@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const initialState: SignupState = {
   success: false,
@@ -36,16 +37,20 @@ function SubmitButton() {
 export default function SignupPage() {
   const [state, formAction] = useFormState(signup, initialState);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (state.success) {
-      // Don't redirect immediately, let the user see the success message.
+      toast({
+          title: "Account Created!",
+          description: state.message,
+      });
       const timer = setTimeout(() => {
         router.replace('/');
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [state.success, router]);
+  }, [state.success, state.message, router, toast]);
 
   return (
     <Card className="w-full max-w-sm">
@@ -57,10 +62,10 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-           {state.message && (
-             <Alert variant={state.success ? 'default' : 'destructive'}>
-                {state.success ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                <AlertTitle>{state.success ? 'Success!' : 'Signup Failed'}</AlertTitle>
+           {state.message && !state.success && (
+             <Alert variant={'destructive'}>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>{'Signup Failed'}</AlertTitle>
                 <AlertDescription>{state.message}</AlertDescription>
              </Alert>
            )}
@@ -87,3 +92,5 @@ export default function SignupPage() {
     </Card>
   );
 }
+
+    

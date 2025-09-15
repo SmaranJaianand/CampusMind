@@ -41,7 +41,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
 
   try {
     await createUserWithEmailAndPassword(auth, email, password);
-    return { success: true, message: 'Signup successful!' };
+    return { success: true, message: 'Signup successful! Redirecting...' };
   } catch (error: any) {
     let message = 'An unknown error occurred.';
     if (error.code === 'auth/email-already-in-use') {
@@ -84,3 +84,5 @@ export async function logout() {
     console.error('Error signing out:', error);
   }
 }
+
+    
