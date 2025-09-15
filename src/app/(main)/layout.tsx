@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -49,6 +50,7 @@ const navItems = [
 
 function EmergencyDialog({ isMobile = false }: { isMobile?: boolean }) {
   const [customNumber, setCustomNumber] = React.useState('1-800-273-8255');
+  const [customEmail, setCustomEmail] = React.useState('support@campus.test');
   const dialogId = isMobile ? 'mobile' : 'desktop';
 
   return (
@@ -70,22 +72,35 @@ function EmergencyDialog({ isMobile = false }: { isMobile?: boolean }) {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you in immediate distress?</AlertDialogTitle>
           <AlertDialogDescription>
-            This service connects you to a crisis counselor. If you are not in the US, please enter your local emergency number below.
+            This service will open your default email client to connect you with support. Enter the email address you want to contact below.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="py-4">
-          <Label htmlFor={`custom-number-${dialogId}`}>Emergency Number</Label>
-          <Input 
-            id={`custom-number-${dialogId}`}
-            value={customNumber}
-            onChange={(e) => setCustomNumber(e.target.value)}
-            placeholder="Enter phone number"
-          />
+        <div className="py-4 space-y-4">
+           <div className="grid gap-2">
+            <Label htmlFor={`custom-email-${dialogId}`}>Support Email</Label>
+            <Input 
+              id={`custom-email-${dialogId}`}
+              type="email"
+              value={customEmail}
+              onChange={(e) => setCustomEmail(e.target.value)}
+              placeholder="Enter support email"
+            />
+           </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`custom-number-${dialogId}`}>Emergency Phone Number (For Reference)</Label>
+            <Input 
+              id={`custom-number-${dialogId}`}
+              value={customNumber}
+              onChange={(e) => setCustomNumber(e.target.value)}
+              placeholder="Enter phone number"
+              disabled
+            />
+          </div>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction asChild>
-            <Link href={`tel:${customNumber.replace(/\s/g, '')}`}>Connect to Crisis Line</Link>
+            <Link href={`mailto:${customEmail}?subject=Urgent%20Support%20Needed&body=I%20am%20reaching%20out%20for%20immediate%20support.`}>Connect to Support</Link>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
