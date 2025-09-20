@@ -243,6 +243,6 @@ export default function SignupPage() {
             </Link>
           </p>
       </CardFooter>
-    </card>
+    </Card>
   );
 }
