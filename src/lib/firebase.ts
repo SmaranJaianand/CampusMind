@@ -1,8 +1,7 @@
-"use client";
 
-// Import the functions you need from the SDKs you need
+
 import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore/lite";
 
 // Your web app's Firebase configuration
@@ -20,9 +19,13 @@ const firebaseConfig: FirebaseOptions = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Auth and Firestore are conditionally initialized for client-side use
-const auth = typeof window !== 'undefined' ? getAuth(app) : null;
-const db = typeof window !== 'undefined' ? getFirestore(app) : null;
-const googleProvider = new GoogleAuthProvider();
+let auth: ReturnType<typeof getAuth> | null = null;
+let db: ReturnType<typeof getFirestore> | null = null;
+
+if (typeof window !== 'undefined') {
+  auth = getAuth(app);
+  db = getFirestore(app);
+}
 
 
-export { app, auth, db, googleProvider };
+export { app, auth, db };
