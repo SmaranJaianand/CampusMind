@@ -2,29 +2,30 @@ import { getApps, initializeApp, getApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { ServiceAccount } from 'firebase-admin/app';
 
-function getAdminApp() {
-    if (getApps().some(app => app.name === 'admin-app')) {
-        return getApp('admin-app');
-    }
+// This will be null if the key is not set.
+let adminApp = null; 
 
+try {
     const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-    if (!serviceAccountString) {
-        throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Admin features will be limited.");
-    }
-
-    try {
+    if (serviceAccountString) {
         const serviceAccount: ServiceAccount = JSON.parse(serviceAccountString);
-        return initializeApp({
-            credential: cert(serviceAccount),
-        }, 'admin-app');
-    } catch (error) {
-        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error);
-        throw new Error("Failed to initialize Firebase Admin SDK.");
+        if (getApps().some(app => app.name === 'admin-app')) {
+            adminApp = getApp('admin-app');
+        } else {
+            adminApp = initializeApp({
+                credential: cert(serviceAccount),
+            }, 'admin-app');
+        }
+    } else {
+        console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Admin features will be limited.");
     }
+} catch (error) {
+    console.error("Failed to initialize Firebase Admin SDK:", error);
+    // Don't re-throw the error, just let adminApp be null.
 }
 
-const adminApp = getAdminApp();
-const auth = getAuth(adminApp);
+// Conditionally export auth
+const auth = adminApp ? getAuth(adminApp) : null;
 
 export { adminApp, auth };

@@ -13,6 +13,12 @@ import {
 
 
 async function getUsers() {
+    // If adminAuth is not initialized, we can't fetch users.
+    if (!adminAuth) {
+        console.log("Firebase Admin not initialized. Skipping user fetch.");
+        return [];
+    }
+
     try {
         const userRecords = await adminAuth.listUsers();
         const users = userRecords.users.map((user) => ({
@@ -88,7 +94,7 @@ export default async function AdminPage() {
               ) : (
                  <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No users found. This may be due to a configuration issue. Check your FIREBASE_SERVICE_ACCOUNT_KEY.
+                        No users found. Ensure the FIREBASE_SERVICE_ACCOUNT_KEY is set correctly in your environment variables.
                     </TableCell>
                  </TableRow>
               )}
