@@ -11,7 +11,7 @@ import { logout, updateUserProfile } from '@/app/auth/actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useTransition } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -124,6 +124,18 @@ export default function ProfilePage() {
           <div className="flex gap-2">
             <Button onClick={handleUpdateProfile} disabled={isPending}>{isPending ? 'Updating...' : 'Update Profile'}</Button>
             <Button variant="destructive" onClick={handleLogout}>Logout</Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Settings</CardTitle>
+          <CardDescription>Manage application settings.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="theme">Theme</Label>
+            <ThemeToggle />
           </div>
         </CardContent>
       </Card>
