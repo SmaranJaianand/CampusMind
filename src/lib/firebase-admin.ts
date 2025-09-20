@@ -1,6 +1,6 @@
 import { getApps, initializeApp, getApp, cert } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { ServiceAccount } from 'firebase-admin/app';
+import { type ServiceAccount } from 'firebase-admin/app';
 
 // This will be null if the key is not set.
 let adminApp = null; 
