@@ -1,4 +1,3 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
@@ -17,8 +16,10 @@ const firebaseConfig: FirebaseOptions = {
 
 // Initialize Firebase for the client
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+
+// Auth and Firestore are conditionally initialized for client-side use
+const auth = typeof window !== 'undefined' ? getAuth(app) : null;
+const db = typeof window !== 'undefined' ? getFirestore(app) : null;
 const googleProvider = new GoogleAuthProvider();
 
 

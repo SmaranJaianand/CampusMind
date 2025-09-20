@@ -67,7 +67,7 @@ export default function LoginPage() {
   }, [state.success, router, toast]);
 
   const setupRecaptcha = () => {
-    if (!recaptchaContainerRef.current) return;
+    if (!auth || !recaptchaContainerRef.current) return;
     if ((window as any).recaptchaVerifier) {
       (window as any).recaptchaVerifier.clear();
     }
@@ -80,6 +80,7 @@ export default function LoginPage() {
   }
   
   const handleGoogleSignIn = async () => {
+    if (!auth) return;
     setPhoneAuthError(null);
     try {
         await signInWithPopup(auth, googleProvider);
@@ -96,6 +97,7 @@ export default function LoginPage() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!auth) return;
       setPhoneAuthError(null);
       setIsSendingOtp(true);
       

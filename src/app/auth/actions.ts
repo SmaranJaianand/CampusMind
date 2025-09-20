@@ -1,13 +1,9 @@
 
 'use server';
 
-import { auth } from '@/lib/firebase';
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  updateProfile,
-} from 'firebase/auth';
+import { auth as serverAuth } from '@/lib/firebase-admin';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { app } from '@/lib/firebase';
 import { z } from 'zod';
 
 const emailSchema = z.string().email({ message: 'Please enter a valid email address.' });
@@ -41,6 +37,7 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
   const { email, password } = result.data;
 
   try {
+    const auth = getAuth(app);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     // Set admin display name if it's the admin email
     if (email === 'admin@campusmind.app') {
@@ -65,6 +62,7 @@ export type LoginState = {
 
 export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const result = loginSchema.safeParse(Object.fromEntries(formData.entries()));
+  const auth = getAuth(app);
 
   if (!result.success) {
     return {
@@ -104,6 +102,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
 export async function logout() {
   try {
+    const auth = getAuth(app);
     await signOut(auth);
   } catch (error) {
     console.error('Error signing out:', error);
@@ -121,6 +120,7 @@ export type ProfileUpdateState = {
 };
 
 export async function updateUserProfile(data: { displayName?: string, photoURL?: string }): Promise<ProfileUpdateState> {
+    const auth = getAuth(app);
     const user = auth.currentUser;
     if (!user) {
         return { success: false, message: "You must be logged in to update your profile." };

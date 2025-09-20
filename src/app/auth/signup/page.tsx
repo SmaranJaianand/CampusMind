@@ -46,7 +46,7 @@ export default function SignupPage() {
   const [otp, setOtp] = useState('');
   const [confirmationResult, setConfirmationResult] = useState<any>(null);
   const [authError, setAuthError] = useState<string | null>(null);
-  const [isSendingOtp, setIsSendingOtp]_useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
   
@@ -67,7 +67,7 @@ export default function SignupPage() {
   }, [state.success, state.message, router, toast]);
   
   const setupRecaptcha = () => {
-    if (!recaptchaContainerRef.current) return;
+    if (!auth || !recaptchaContainerRef.current) return;
     if ((window as any).recaptchaVerifier) {
       (window as any).recaptchaVerifier.clear();
     }
@@ -80,6 +80,7 @@ export default function SignupPage() {
   }
   
   const handleGoogleSignUp = async () => {
+    if (!auth) return;
     setAuthError(null);
     try {
         await signInWithPopup(auth, googleProvider);
@@ -96,6 +97,7 @@ export default function SignupPage() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!auth) return;
       setAuthError(null);
       setIsSendingOtp(true);
       
@@ -241,6 +243,6 @@ export default function SignupPage() {
             </Link>
           </p>
       </CardFooter>
-    </Card>
+    </card>
   );
 }

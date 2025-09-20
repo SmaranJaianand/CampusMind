@@ -1,5 +1,4 @@
-import { getApps as getAdminApps, initializeApp as initializeAdminApp, getApp as getAdminAppUntyped, cert, ServiceAccount } from 'firebase-admin/app';
-import { getAuth }from 'firebase-admin/auth';
+import { auth as adminAuth } from '@/lib/firebase-admin';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,40 +12,9 @@ import {
 } from '@/components/ui/table';
 
 
-// Initialize Firebase Admin SDK for the server
-function getAdminApp() {
-    if (getAdminApps().length) {
-        return getAdminAppUntyped();
-    }
-
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-    if (!serviceAccountString) {
-        console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Admin features will be limited.");
-        return initializeAdminApp({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        }, "fallback_app_" + Date.now());
-    }
-
-    try {
-        const serviceAccount: ServiceAccount = JSON.parse(serviceAccountString);
-        return initializeAdminApp({
-            credential: cert(serviceAccount),
-        });
-    } catch (error) {
-        console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error);
-         return initializeAdminApp({
-            projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-        }, "fallback_app_error_" + Date.now());
-    }
-}
-
-
 async function getUsers() {
     try {
-        const adminApp = getAdminApp();
-        const auth = getAuth(adminApp);
-        const userRecords = await auth.listUsers();
+        const userRecords = await adminAuth.listUsers();
         const users = userRecords.users.map((user) => ({
           uid: user.uid,
           name: user.displayName || 'No Name',
