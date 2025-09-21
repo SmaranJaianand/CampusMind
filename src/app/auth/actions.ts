@@ -76,15 +76,16 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
   const { email, password } = result.data;
   const auth = getAuth(app);
-  let userCredential: UserCredential | null = null;
+  let userCredential: UserCredential;
   
   try {
+    // This combined logic ensures the session cookie is set for the admin on first login.
     if (email === 'admin@campusmind.app') {
       try {
         // Try to sign in the admin first.
         userCredential = await signInWithEmailAndPassword(auth, email, password);
       } catch (signInError: any) {
-        // If the admin user doesn't exist, create them.
+        // If the admin user doesn't exist (or login fails), try to create them.
         if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
           try {
             userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -101,10 +102,6 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
     } else {
       // For regular users, just sign them in.
       userCredential = await signInWithEmailAndPassword(auth, email, password);
-    }
-
-    if (!userCredential) {
-        return { success: false, message: 'Could not authenticate user. Please try again.' };
     }
     
     // Set the session cookie. This will now run for the admin on their first login too.
