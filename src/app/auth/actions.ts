@@ -2,7 +2,8 @@
 
 import { cookies } from 'next/headers';
 import { z } from 'zod';
-import { auth } from '@/lib/firebase-admin'; // <-- Correct: Use admin SDK on the server
+import { auth } from '@/lib/firebase-admin';
+import { redirect } from 'next/navigation';
 
 // ------------------------------
 // Validation Schemas

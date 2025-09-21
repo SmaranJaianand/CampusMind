@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useState, useTransition } from 'react';
 import { useFormStatus } from 'react-dom';
 import { login } from '@/app/auth/actions';
 import type { AuthState } from '@/app/auth/actions';
@@ -28,15 +28,6 @@ const initialLoginState: AuthState = {
   message: '',
 };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? 'Logging In...' : 'Login with Email'}
-    </Button>
-  );
-}
-
 function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px" {...props}>
@@ -61,11 +52,11 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function LoginPage() {
-  const [state, formAction] = useActionState(login, initialLoginState);
   const router = useRouter();
   const { toast } = useToast();
-  const [pending, setPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
+  const [state, formAction] = useActionState(login, initialLoginState);
 
   useEffect(() => {
     if (state.success) {
@@ -75,53 +66,48 @@ export default function LoginPage() {
       });
       router.replace('/');
     } else if (state.message) {
-        toast({
-            variant: 'destructive',
-            title: 'Login Failed',
-            description: state.message,
-        });
-    }
-  }, [state, router, toast]);
-
-  const handleFormSubmit = async (formData: FormData) => {
-    setPending(true);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    try {
-      let userCredential: UserCredential;
-
-      if (email === 'admin@campusmind.app') {
-         try {
-           userCredential = await signInWithEmailAndPassword(auth, email, password);
-         } catch (error: any) {
-            if (error.code === 'auth/user-not-found') {
-               userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            } else {
-               throw error;
-            }
-         }
-      } else {
-         userCredential = await signInWithEmailAndPassword(auth, email, password);
-      }
-      
-      const idToken = await userCredential.user.getIdToken();
-      await formAction(idToken);
-
-    } catch (error: any) {
-      const defaultMessage = 'An unknown error occurred.';
-      const message = error.code === 'auth/invalid-credential' 
-        ? 'Invalid email or password.'
-        : error.message || defaultMessage;
-      
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: message,
+        description: state.message,
       });
-    } finally {
-      setPending(false);
     }
+  }, [state.success, state.message, router, toast]);
+
+  const handleFormSubmit = async (formData: FormData) => {
+    startTransition(async () => {
+      const email = formData.get('email') as string;
+      const password = formData.get('password') as string;
+
+      try {
+        let userCredential: UserCredential;
+        
+        try {
+          userCredential = await signInWithEmailAndPassword(auth, email, password);
+        } catch (error: any) {
+          if (email === 'admin@campusmind.app' && error.code === 'auth/user-not-found') {
+            userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          } else {
+            throw error;
+          }
+        }
+        
+        const idToken = await userCredential.user.getIdToken();
+        await formAction(idToken);
+
+      } catch (error: any) {
+        const defaultMessage = 'An unknown error occurred.';
+        const message = error.code === 'auth/invalid-credential' 
+          ? 'Invalid email or password.'
+          : error.message || defaultMessage;
+        
+        toast({
+          variant: 'destructive',
+          title: 'Login Failed',
+          description: message,
+        });
+      }
+    });
   };
 
   return (
@@ -143,8 +129,8 @@ export default function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" required />
             </div>
-            <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? 'Logging In...' : 'Login with Email'}
+            <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? 'Logging In...' : 'Login with Email'}
             </Button>
           </form>
 
