@@ -1,7 +1,8 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { signup, type SignupState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,7 +50,7 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 
 export default function SignupPage() {
-  const [state, formAction] = useFormState(signup, initialState);
+  const [state, formAction] = useActionState(signup, initialState);
   const router = useRouter();
   const { toast } = useToast();
   
