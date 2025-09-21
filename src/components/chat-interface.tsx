@@ -13,33 +13,24 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, User, Bot } from 'lucide-react';
-import { getAiResponse, getMessages, type ChatMessage } from '@/app/actions';
+import { getAiResponse } from '@/app/actions';
 import { Logo } from './logo';
 import { useAuth } from '@/context/auth-context';
 import { Skeleton } from './ui/skeleton';
 
+interface DisplayMessage {
+  id: string;
+  sender: 'user' | 'ai';
+  text: string;
+}
+
 export function ChatInterface() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  // Load chat history on component mount
-  useEffect(() => {
-    if (user) {
-      setIsHistoryLoading(true);
-      getMessages(user.uid)
-        .then(history => {
-          setMessages(history);
-        })
-        .finally(() => {
-          setIsHistoryLoading(false);
-        });
-    }
-  }, [user]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -61,23 +52,23 @@ export function ChatInterface() {
     const userInput = inputValue;
     setInputValue('');
 
-    // Optimistically update UI with user message
-    const userMessage: ChatMessage = {
+    const userMessage: DisplayMessage = {
       id: Date.now().toString(),
       sender: 'user',
       text: userInput,
-      timestamp: { seconds: Date.now() / 1000, nanoseconds: 0 } as any, // Temporary timestamp
     };
     setMessages(prev => [...prev, userMessage]);
     
     setIsAiLoading(true);
     
-    // Call server action to get AI response and save messages
-    const aiResponse = await getAiResponse(userInput, user.uid);
+    const aiResult = await getAiResponse(userInput, user.uid);
     
-    // Fetch latest messages to ensure UI is in sync
-    const updatedMessages = await getMessages(user.uid);
-    setMessages(updatedMessages);
+    const aiMessage: DisplayMessage = {
+      id: (Date.now() + 1).toString(),
+      sender: 'ai',
+      text: aiResult.response,
+    };
+    setMessages(prev => [...prev, aiMessage]);
 
     setIsAiLoading(false);
   };
@@ -97,13 +88,7 @@ export function ChatInterface() {
         <CardContent className="flex-1 overflow-hidden">
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div className="space-y-6 pr-4">
-              {isHistoryLoading ? (
-                 <div className="space-y-4">
-                    <Skeleton className="h-16 w-3/4" />
-                    <Skeleton className="h-16 w-3/4 ml-auto" />
-                    <Skeleton className="h-24 w-4/5" />
-                </div>
-              ) : messages.length === 0 ? (
+              {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
                     <Bot className="h-12 w-12 mb-4" />
                     <p>

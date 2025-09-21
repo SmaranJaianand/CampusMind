@@ -11,27 +11,14 @@ import { db } from '@/lib/firebase';
 import { collection, addDoc, query, getDocs, Timestamp, orderBy } from 'firebase/firestore/lite';
 import { auth } from '@/lib/firebase';
 
-export interface ChatMessage {
-  id: string;
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: Timestamp;
-}
 
 export async function getAiResponse(
   userInput: string,
   userId: string
 ): Promise<GenerateInitialResponseOutput> {
   try {
-    // First, save the user's message
-    await saveMessage(userId, { sender: 'user', text: userInput });
-
     // Then, get the AI's response
     const response = await generateInitialResponse({ userInput });
-
-    // Finally, save the AI's response
-    await saveMessage(userId, { sender: 'ai', text: response.response });
-
     return response;
   } catch (error) {
     console.error('Error getting AI response:', error);
@@ -41,40 +28,6 @@ export async function getAiResponse(
   }
 }
 
-export async function saveMessage(userId: string, message: { sender: 'user' | 'ai'; text: string }): Promise<void> {
-    if (!db) {
-        console.error("Firestore is not initialized.");
-        return;
-    }
-    try {
-        await addDoc(collection(db, `users/${userId}/messages`), {
-            ...message,
-            timestamp: Timestamp.now(),
-        });
-    } catch (error) {
-        console.error("Error saving message to Firestore:", error);
-    }
-}
-
-export async function getMessages(userId: string): Promise<ChatMessage[]> {
-    if (!db) {
-        console.error("Firestore is not initialized.");
-        return [];
-    }
-    try {
-        const messagesRef = collection(db, `users/${userId}/messages`);
-        const q = query(messagesRef, orderBy('timestamp', 'asc'));
-        const querySnapshot = await getDocs(q);
-        const messages: ChatMessage[] = [];
-        querySnapshot.forEach((doc) => {
-            messages.push({ id: doc.id, ...doc.data() } as ChatMessage);
-        });
-        return messages;
-    } catch (error) {
-        console.error("Error fetching messages from Firestore:", error);
-        return [];
-    }
-}
 
 
 const sendSupportEmailSchema = z.object({
@@ -131,3 +84,4 @@ export async function sendSupportEmail(formData: FormData): Promise<{success: bo
     return { success: false, message: 'An error occurred while trying to send the email.' };
   }
 }
+
