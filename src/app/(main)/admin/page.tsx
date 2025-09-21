@@ -41,6 +41,8 @@ async function getUsers() {
 
 export default async function AdminPage() {
   const users = await getUsers();
+  const isAuthReady = !!adminAuth;
+
 
   return (
     <div className="space-y-6">
@@ -68,7 +70,7 @@ export default async function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.length > 0 ? (
+              {isAuthReady && users.length > 0 ? (
                 users.map((user) => (
                   <TableRow key={user.email}>
                     <TableCell>
@@ -94,7 +96,10 @@ export default async function AdminPage() {
               ) : (
                  <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No users found. Ensure the FIREBASE_SERVICE_ACCOUNT_KEY is set correctly in your environment variables.
+                        {!isAuthReady ? 
+                        "Firebase Admin authentication is not configured. Please set the FIREBASE_SERVICE_ACCOUNT_KEY environment variable to manage users." : 
+                        "No users found."
+                        }
                     </TableCell>
                  </TableRow>
               )}

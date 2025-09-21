@@ -40,7 +40,7 @@ export type AuthState = {
 // ------------------------------
 export async function signup(prevState: AuthState, formData: FormData): Promise<AuthState> {
   if (!auth) {
-    return { success: false, message: 'Admin authentication is not configured.' };
+    return { success: false, message: 'Admin authentication is not configured. Please ensure the FIREBASE_SERVICE_ACCOUNT_KEY is set in your environment variables.' };
   }
   const result = signupSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!result.success) {
@@ -71,7 +71,7 @@ export async function signup(prevState: AuthState, formData: FormData): Promise<
 // ------------------------------
 export async function login(idToken: string): Promise<AuthState> {
     if (!auth) {
-        return { success: false, message: 'Admin authentication is not configured.' };
+        return { success: false, message: 'Admin authentication is not configured. Please ensure the FIREBASE_SERVICE_ACCOUNT_KEY is set in your environment variables.' };
     }
   try {
     const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
@@ -111,7 +111,7 @@ export async function updateUserProfile(data: {
   photoURL?: string;
 }): Promise<AuthState> {
   if (!auth) {
-    return { success: false, message: 'Admin authentication is not configured.' };
+    return { success: false, message: 'Admin authentication is not configured. Please ensure the FIREBASE_SERVICE_ACCOUNT_KEY is set in your environment variables.' };
   }
   const { uid, ...profileData } = data;
   const result = profileUpdateSchema.safeParse(profileData);

@@ -18,10 +18,10 @@ try {
             }, 'admin-app');
         }
     } else {
-        console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Admin features will be limited.");
+        console.warn("FIREBASE_SERVICE_ACCOUNT_KEY is not set. Admin features like user management and server-side authentication will be disabled. Please set this environment variable to enable them.");
     }
 } catch (error) {
-    console.error("Failed to initialize Firebase Admin SDK:", error);
+    console.error("Failed to initialize Firebase Admin SDK. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is a valid JSON object.", error);
     // Don't re-throw the error, just let adminApp be null.
 }
 
