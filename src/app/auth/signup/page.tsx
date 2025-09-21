@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useActionState, useEffect } from 'react';
-import { useFormStatus } from 'react-dom';
-import { signup, type SignupState } from '@/app/auth/actions';
+import { useActionState, useEffect, useState } from 'react';
+import { signup } from '@/app/auth/actions';
+import type { AuthState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,13 +21,12 @@ import { Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
-const initialState: SignupState = {
+const initialState: AuthState = {
   success: false,
   message: '',
 };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+function SubmitButton({ pending }: { pending: boolean }) {
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? 'Creating Account...' : 'Create an account'}
@@ -51,16 +50,15 @@ export default function SignupPage() {
   const [state, formAction] = useActionState(signup, initialState);
   const router = useRouter();
   const { toast } = useToast();
+  const [pending, setPending] = useState(false);
   
   useEffect(() => {
     if (state.success) {
       toast({
           title: "Account Created!",
-          description: state.message || "Redirecting...",
+          description: state.message || "Please log in to continue.",
       });
-      setTimeout(() => {
-        router.replace('/');
-      }, 500);
+      router.replace('/auth/login');
     } else if (state.message) {
       toast({
           variant: 'destructive',
@@ -68,7 +66,13 @@ export default function SignupPage() {
           description: state.message,
       });
     }
-  }, [state.success, state.message, router, toast]);
+  }, [state, router, toast]);
+
+  const handleFormSubmit = async (formData: FormData) => {
+    setPending(true);
+    await formAction(formData);
+    setPending(false);
+  }
 
   return (
     <TooltipProvider>
@@ -80,7 +84,7 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <form action={formAction} className="grid gap-4">
+          <form action={handleFormSubmit} className="grid gap-4">
               <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" name="email" type="email" placeholder="m@example.com" required />
@@ -89,7 +93,7 @@ export default function SignupPage() {
                   <Label htmlFor="password">Password</Label>
                   <Input id="password" name="password" type="password" required />
               </div>
-              <SubmitButton />
+              <SubmitButton pending={pending} />
           </form>
 
           <div className="relative">

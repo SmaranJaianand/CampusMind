@@ -1,162 +1,134 @@
-
 'use server';
 
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, type UserCredential } from 'firebase/auth';
-import { app } from '@/lib/firebase';
-import { z } from 'zod';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
+import { auth } from '@/lib/firebase-admin'; // <-- Correct: Use admin SDK on the server
 
-
+// ------------------------------
+// Validation Schemas
+// ------------------------------
 const emailSchema = z.string().email({ message: 'Please enter a valid email address.' });
 const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters long.' });
 
 const signupSchema = z.object({
-    email: emailSchema,
-    password: passwordSchema,
+  email: emailSchema,
+  password: passwordSchema,
 });
-
-export type SignupState = {
-  success: boolean;
-  message: string;
-};
-
-export async function signup(prevState: SignupState, formData: FormData): Promise<SignupState> {
-  const result = signupSchema.safeParse(Object.fromEntries(formData.entries()));
-
-  if (!result.success) {
-    return {
-      success: false,
-      message: result.error.errors.map((e) => e.message).join(' '),
-    };
-  }
-
-  const { email, password } = result.data;
-
-  try {
-    const auth = getAuth(app);
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Set admin display name if it's the admin email
-    if (email === 'admin@campusmind.app') {
-      await updateProfile(userCredential.user, { displayName: 'Admin' });
-    }
-     const idToken = await userCredential.user.getIdToken();
-    cookies().set('firebase-session', idToken, { httpOnly: true, secure: true, path: '/' });
-
-
-    return { success: true, message: 'Signup successful! Redirecting...' };
-  } catch (error: any) {
-    let message = 'An unknown error occurred.';
-    if (error.code === 'auth/email-already-in-use') {
-      message = 'This email is already in use. Please try logging in.';
-    }
-    return { success: false, message };
-  }
-}
-
-
-export type LoginState = {
-  success: boolean;
-  message: string;
-};
 
 const loginSchema = z.object({
-    email: emailSchema,
-    password: passwordSchema,
+  email: emailSchema,
+  password: passwordSchema,
 });
-
-export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
-  const result = loginSchema.safeParse(Object.fromEntries(formData.entries()));
-
-  if (!result.success) {
-    return {
-      success: false,
-      message: result.error.errors.map((e) => e.message).join(' '),
-    };
-  }
-
-  const { email, password } = result.data;
-  const auth = getAuth(app);
-  let userCredential: UserCredential;
-  
-  try {
-    // This combined logic ensures the session cookie is set for the admin on first login.
-    if (email === 'admin@campusmind.app') {
-      try {
-        // Try to sign in the admin first.
-        userCredential = await signInWithEmailAndPassword(auth, email, password);
-      } catch (signInError: any) {
-        // If the admin user doesn't exist (or login fails), try to create them.
-        if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
-          try {
-            userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            await updateProfile(userCredential.user, { displayName: 'Admin' });
-          } catch (createError: any) {
-             // This might happen if the account exists but the password was wrong on the initial try.
-             return { success: false, message: 'Failed to create admin account. It may already exist with a different password.' };
-          }
-        } else {
-          // Another sign-in error occurred (e.g., wrong password for an existing admin).
-          throw signInError;
-        }
-      }
-    } else {
-      // For regular users, just sign them in.
-      userCredential = await signInWithEmailAndPassword(auth, email, password);
-    }
-    
-    // Set the session cookie. This will now run for the admin on their first login too.
-    const idToken = await userCredential.user.getIdToken();
-    cookies().set('firebase-session', idToken, { httpOnly: true, secure: true, path: '/' });
-
-    return { success: true, message: 'Login successful! Redirecting...' };
-
-  } catch (error: any) {
-    return { success: false, message: 'Invalid email or password. Please try again.' };
-  }
-}
-
-export async function logout() {
-  try {
-    cookies().delete('firebase-session');
-  } catch (error) {
-    console.error('Error signing out:', error);
-  }
-}
 
 const profileUpdateSchema = z.object({
   displayName: z.string().optional(),
   photoURL: z.string().url().optional(),
 });
 
-export type ProfileUpdateState = {
+
+// ------------------------------
+// Types
+// ------------------------------
+export type AuthState = {
   success: boolean;
   message: string;
 };
 
-export async function updateUserProfile(data: { displayName?: string, photoURL?: string }): Promise<ProfileUpdateState> {
-    const auth = getAuth(app);
-    const user = auth.currentUser;
-    if (!user) {
-        return { success: false, message: "You must be logged in to update your profile." };
-    }
 
-    const result = profileUpdateSchema.safeParse(data);
-    if (!result.success) {
-        return { success: false, message: result.error.errors.map((e) => e.message).join(' ') };
-    }
+// ------------------------------
+// Signup → Create user and set session cookie
+// ------------------------------
+export async function signup(prevState: AuthState, formData: FormData): Promise<AuthState> {
+  if (!auth) {
+    return { success: false, message: 'Admin authentication is not configured.' };
+  }
+  const result = signupSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!result.success) {
+    return { success: false, message: result.error.errors.map((e) => e.message).join(' ') };
+  }
 
-    try {
-        const updateData: { displayName?: string, photoURL?: string } = {};
-        if (result.data.displayName) {
-            updateData.displayName = result.data.displayName;
-        }
-        if (result.data.photoURL) {
-            updateData.photoURL = result.data.photoURL;
-        }
+  const { email, password } = result.data;
 
-        await updateProfile(user, updateData);
-        return { success: true, message: 'Profile updated successfully.' };
-    } catch (error: any) {
-        return { success: false, message: 'Failed to update profile.' };
+  try {
+     // This flow now creates the user on the server.
+    await auth.createUser({
+      email,
+      password,
+      displayName: email.split('@')[0], // Default display name
+    });
+    
+    return { success: true, message: 'Signup successful! Please log in.' };
+  } catch (error: any) {
+    if (error.code === 'auth/email-already-exists') {
+      return { success: false, message: 'An account with this email already exists.' };
     }
+    return { success: false, message: 'Signup failed. Please try again.' };
+  }
+}
+
+// ------------------------------
+// Login → Create idToken on client, set session cookie on server
+// ------------------------------
+export async function login(idToken: string): Promise<AuthState> {
+    if (!auth) {
+        return { success: false, message: 'Admin authentication is not configured.' };
+    }
+  try {
+    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 days
+    const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
+
+    cookies().set('firebase-session', sessionCookie, {
+      httpOnly: true,
+      secure: true,
+      path: '/',
+      maxAge: expiresIn / 1000,
+    });
+
+    return { success: true, message: 'Login successful! Redirecting...' };
+  } catch (error) {
+    console.error("Login action error:", error);
+    return { success: false, message: 'Login failed. Please check your credentials and try again.' };
+  }
+}
+
+// ------------------------------
+// Logout
+// ------------------------------
+export async function logout() {
+  cookies().delete('firebase-session');
+  // No need to redirect from here, client will handle it.
+  return { success: true, message: 'Logged out successfully.' };
+}
+
+
+// ------------------------------
+// Profile Update
+// (runs on server, modifies Firebase user)
+// ------------------------------
+export async function updateUserProfile(data: {
+  uid: string;
+  displayName?: string;
+  photoURL?: string;
+}): Promise<AuthState> {
+  if (!auth) {
+    return { success: false, message: 'Admin authentication is not configured.' };
+  }
+  const { uid, ...profileData } = data;
+  const result = profileUpdateSchema.safeParse(profileData);
+
+  if (!result.success) {
+    return { success: false, message: result.error.errors.map((e) => e.message).join(' ') };
+  }
+
+  if (!uid) {
+    return { success: false, message: 'User not authenticated.' };
+  }
+
+  try {
+    await auth.updateUser(uid, result.data);
+    return { success: true, message: 'Profile updated successfully.' };
+  } catch (error) {
+    console.error("Update profile error:", error);
+    return { success: false, message: 'Failed to update profile.' };
+  }
 }

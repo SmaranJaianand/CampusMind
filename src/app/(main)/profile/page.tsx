@@ -28,8 +28,9 @@ export default function ProfilePage() {
   };
 
   const handleUpdateProfile = () => {
+    if (!user) return;
     startTransition(async () => {
-      const result = await updateUserProfile({ displayName, photoURL });
+      const result = await updateUserProfile({ uid: user.uid, displayName, photoURL });
       if (result.success) {
         toast({
           title: 'Profile Updated',
@@ -46,11 +47,12 @@ export default function ProfilePage() {
   };
 
   const handlePhotoChange = () => {
+      if (!user) return;
       const newPhotoURL = prompt("Enter the URL of your new profile picture:");
       if (newPhotoURL) {
           setPhotoURL(newPhotoURL);
           startTransition(async () => {
-            const result = await updateUserProfile({ displayName, photoURL: newPhotoURL });
+            const result = await updateUserProfile({ uid: user.uid, displayName, photoURL: newPhotoURL });
              if (result.success) {
                 toast({
                     title: 'Profile Photo Updated',
