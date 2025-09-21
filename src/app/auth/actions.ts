@@ -1,7 +1,7 @@
 
 'use server';
 
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, type UserCredential } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { z } from 'zod';
 import { cookies } from 'next/headers';
@@ -75,31 +75,39 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
   }
 
   const { email, password } = result.data;
+  const auth = getAuth(app);
+  let userCredential: UserCredential | null = null;
   
   try {
-    const auth = getAuth(app);
-    let userCredential;
-    
-    // Special case to create the admin user if they don't exist and are trying to log in.
     if (email === 'admin@campusmind.app') {
-        try {
-            userCredential = await signInWithEmailAndPassword(auth, email, password);
-        } catch (signInError: any) {
-            if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
-                try {
-                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                    await updateProfile(userCredential.user, { displayName: 'Admin' });
-                } catch (createError: any) {
-                    return { success: false, message: 'Failed to create admin account. It may already exist with a different password.' };
-                }
-            } else {
-                 return { success: false, message: 'Invalid email or password. Please try again.' };
-            }
-        }
-    } else {
+      try {
+        // Try to sign in the admin first.
         userCredential = await signInWithEmailAndPassword(auth, email, password);
+      } catch (signInError: any) {
+        // If the admin user doesn't exist, create them.
+        if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
+          try {
+            userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(userCredential.user, { displayName: 'Admin' });
+          } catch (createError: any) {
+             // This might happen if the account exists but the password was wrong on the initial try.
+             return { success: false, message: 'Failed to create admin account. It may already exist with a different password.' };
+          }
+        } else {
+          // Another sign-in error occurred (e.g., wrong password for an existing admin).
+          throw signInError;
+        }
+      }
+    } else {
+      // For regular users, just sign them in.
+      userCredential = await signInWithEmailAndPassword(auth, email, password);
+    }
+
+    if (!userCredential) {
+        return { success: false, message: 'Could not authenticate user. Please try again.' };
     }
     
+    // Set the session cookie. This will now run for the admin on their first login too.
     const idToken = await userCredential.user.getIdToken();
     cookies().set('firebase-session', idToken, { httpOnly: true, secure: true, path: '/' });
 
