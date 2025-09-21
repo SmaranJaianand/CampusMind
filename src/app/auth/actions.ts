@@ -55,9 +55,13 @@ export type LoginState = {
   message: string;
 };
 
+const loginSchema = z.object({
+    email: emailSchema,
+    password: passwordSchema,
+});
+
 export async function login(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const result = loginSchema.safeParse(Object.fromEntries(formData.entries()));
-  const auth = getAuth(app);
 
   if (!result.success) {
     return {
@@ -67,17 +71,19 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
   }
 
   const { email, password } = result.data;
-
-   // Special case to create the admin user if they don't exist and are trying to log in.
+  
+  // Special case to create the admin user if they don't exist and are trying to log in.
    if (email === 'admin@campusmind.app' && password === 'adminpwd') {
       try {
+        const auth = getAuth(app);
         // Attempt to sign in first.
         await signInWithEmailAndPassword(auth, email, password);
         return { success: true, message: 'Admin login successful!' };
       } catch (error: any) {
          // If the admin user does not exist, create it.
-        if (error.code === 'auth/user-not-found') {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
           try {
+            const auth = getAuth(app);
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             // Set the display name for the newly created admin user.
             await updateProfile(userCredential.user, { displayName: 'Admin' });
@@ -91,7 +97,9 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
       }
   }
 
+
   try {
+    const auth = getAuth(app);
     await signInWithEmailAndPassword(auth, email, password);
     return { success: true, message: 'Login successful!' };
   } catch (error: any) {
