@@ -15,10 +15,9 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Smartphone } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
@@ -54,22 +53,22 @@ export default function SignupPage() {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (!state.success && state.message) {
+    if (state.success) {
+      toast({
+          title: "Account Created!",
+          description: state.message || "Redirecting...",
+      });
+      setTimeout(() => {
+        router.replace('/');
+      }, 500);
+    } else if (state.message) {
       toast({
           variant: 'destructive',
           title: "Signup Failed",
           description: state.message,
       });
     }
-
-    if (state.success) {
-      toast({
-          title: "Account Created!",
-          description: state.message || "Redirecting...",
-      });
-      router.replace('/');
-    }
-  }, [state, router, toast]);
+  }, [state.success, state.message, router, toast]);
 
   return (
     <TooltipProvider>

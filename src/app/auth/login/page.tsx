@@ -64,24 +64,23 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!state.success && state.message) {
-      // Show error toast only on failure
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: state.message,
-      });
-    }
-
     if (state.success) {
       toast({
         title: 'Login Successful!',
         description: state.message || 'Redirecting...',
       });
-      // Redirect on success
-      router.replace('/');
+      // A small delay can help ensure the toast is visible before navigation.
+      setTimeout(() => {
+        router.replace('/');
+      }, 500);
+    } else if (state.message) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: state.message,
+        });
     }
-  }, [state, router, toast]);
+  }, [state.success, state.message, router, toast]);
 
   return (
     <TooltipProvider>
