@@ -1,7 +1,8 @@
+
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useState, useRef, useEffect, useTransition } from 'react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,33 +13,33 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, User, Bot } from 'lucide-react';
-import { getAiResponse } from '@/app/actions';
+import { getAiResponse, getMessages, type ChatMessage } from '@/app/actions';
 import { Logo } from './logo';
-
-interface Message {
-  id: string;
-  sender: 'user' | 'ai';
-  text: React.ReactNode;
-}
+import { useAuth } from '@/context/auth-context';
+import { Skeleton } from './ui/skeleton';
 
 export function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'ai',
-      text: (
-        <div>
-          <p>
-            Hello! I'm CampusMind, your on-campus companion for mental wellness.
-            How are you feeling today?
-          </p>
-        </div>
-      ),
-    },
-  ]);
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history on component mount
+  useEffect(() => {
+    if (user) {
+      setIsHistoryLoading(true);
+      getMessages(user.uid)
+        .then(history => {
+          setMessages(history);
+        })
+        .finally(() => {
+          setIsHistoryLoading(false);
+        });
+    }
+  }, [user]);
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -51,36 +52,34 @@ export function ChatInterface() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isAiLoading]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() === '' || isLoading) return;
+    if (inputValue.trim() === '' || isAiLoading || !user) return;
 
-    const userMessage: Message = {
+    const userInput = inputValue;
+    setInputValue('');
+
+    // Optimistically update UI with user message
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
       sender: 'user',
-      text: inputValue,
+      text: userInput,
+      timestamp: { seconds: Date.now() / 1000, nanoseconds: 0 } as any, // Temporary timestamp
     };
-
     setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const aiResponse = await getAiResponse(inputValue);
-
-    const aiMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      sender: 'ai',
-      text: (
-        <div>
-          <p>{aiResponse.response}</p>
-        </div>
-      ),
-    };
     
-    setMessages(prev => [...prev, aiMessage]);
-    setIsLoading(false);
+    setIsAiLoading(true);
+    
+    // Call server action to get AI response and save messages
+    const aiResponse = await getAiResponse(userInput, user.uid);
+    
+    // Fetch latest messages to ensure UI is in sync
+    const updatedMessages = await getMessages(user.uid);
+    setMessages(updatedMessages);
+
+    setIsAiLoading(false);
   };
 
   return (
@@ -98,39 +97,56 @@ export function ChatInterface() {
         <CardContent className="flex-1 overflow-hidden">
           <ScrollArea className="h-full" ref={scrollAreaRef}>
             <div className="space-y-6 pr-4">
-              {messages.map(message => (
-                <div
-                  key={message.id}
-                  className={`flex items-start gap-3 ${
-                    message.sender === 'user' ? 'justify-end' : ''
-                  }`}
-                >
-                  {message.sender === 'ai' && (
-                    <Avatar className="h-8 w-8 border-2 border-primary/50">
-                      <AvatarFallback>
-                        <Bot className="text-primary" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
+              {isHistoryLoading ? (
+                 <div className="space-y-4">
+                    <Skeleton className="h-16 w-3/4" />
+                    <Skeleton className="h-16 w-3/4 ml-auto" />
+                    <Skeleton className="h-24 w-4/5" />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+                    <Bot className="h-12 w-12 mb-4" />
+                    <p>
+                        Hello! I'm CampusMind, your on-campus companion for mental wellness.
+                        <br />
+                        How are you feeling today?
+                    </p>
+                </div>
+              ) : (
+                messages.map(message => (
                   <div
-                    className={`rounded-lg px-4 py-3 max-w-[80%] text-sm ${
-                      message.sender === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary'
+                    key={message.id}
+                    className={`flex items-start gap-3 ${
+                      message.sender === 'user' ? 'justify-end' : ''
                     }`}
                   >
-                    {message.text}
+                    {message.sender === 'ai' && (
+                      <Avatar className="h-8 w-8 border-2 border-primary/50">
+                        <AvatarFallback>
+                          <Bot className="text-primary" />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={`rounded-lg px-4 py-3 max-w-[80%] text-sm ${
+                        message.sender === 'user'
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary'
+                      }`}
+                    >
+                      <p>{message.text}</p>
+                    </div>
+                    {message.sender === 'user' && (
+                      <Avatar className="h-8 w-8">
+                         <AvatarFallback>
+                          <User />
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
                   </div>
-                  {message.sender === 'user' && (
-                    <Avatar className="h-8 w-8">
-                       <AvatarFallback>
-                        <User />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              ))}
-              {isLoading && (
+                ))
+              )}
+              {isAiLoading && (
                  <div className="flex items-start gap-3">
                     <Avatar className="h-8 w-8 border-2 border-primary/50">
                         <AvatarFallback>
@@ -158,9 +174,9 @@ export function ChatInterface() {
               autoComplete="off"
               value={inputValue}
               onChange={e => setInputValue(e.target.value)}
-              disabled={isLoading}
+              disabled={isAiLoading || !user}
             />
-            <Button type="submit" size="icon" disabled={isLoading}>
+            <Button type="submit" size="icon" disabled={isAiLoading || !user}>
               <Send className="h-4 w-4" />
               <span className="sr-only">Send</span>
             </Button>

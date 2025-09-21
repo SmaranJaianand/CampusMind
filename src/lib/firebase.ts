@@ -15,17 +15,10 @@ const firebaseConfig: FirebaseOptions = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase for the client
+// Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-
-// Auth and Firestore are conditionally initialized for client-side use
-let auth: ReturnType<typeof getAuth> | null = null;
-let db: ReturnType<typeof getFirestore> | null = null;
-
-if (typeof window !== 'undefined') {
-  auth = getAuth(app);
-  db = getFirestore(app);
-}
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 
 export { app, auth, db };
