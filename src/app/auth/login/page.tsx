@@ -17,10 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { AlertCircle, Smartphone } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const initialLoginState: LoginState = {
@@ -51,21 +48,6 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, initialLoginState);
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    if (state.success) {
-      toast({
-        title: "Login Successful!",
-        description: "You've successfully signed in. Redirecting...",
-      });
-      const timer = setTimeout(() => {
-        // Force a full page reload to ensure auth state is updated
-        window.location.href = '/';
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [state.success, toast]);
 
   return (
     <TooltipProvider>
