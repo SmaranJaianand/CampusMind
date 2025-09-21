@@ -158,13 +158,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  React.useEffect(() => {
-    if (!loading && !user) {
-      router.push('/auth/login');
-    }
-  }, [user, loading, router]);
-
-  if (loading || !user) {
+  // The middleware now handles authentication checks, so the redirect logic here is removed.
+  // We can still show a loading screen while the initial user state is being determined.
+  if (loading) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
             <div className="flex flex-col items-center gap-4">

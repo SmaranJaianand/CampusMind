@@ -19,6 +19,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { AlertCircle, Smartphone } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 const initialLoginState: LoginState = {
   success: false,
@@ -48,6 +51,19 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, initialLoginState);
+  const router = useRouter();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (state.success) {
+        toast({
+            title: "Login Successful!",
+            description: state.message,
+        });
+        // We now handle the redirect on the client after the server action is successful.
+        router.replace('/');
+    }
+  }, [state.success, state.message, router, toast]);
 
   return (
     <TooltipProvider>

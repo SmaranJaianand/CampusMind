@@ -62,7 +62,7 @@ export default function SignupPage() {
       });
       const timer = setTimeout(() => {
         router.replace('/');
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [state.success, state.message, router, toast]);

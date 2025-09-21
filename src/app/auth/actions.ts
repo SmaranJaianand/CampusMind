@@ -1,11 +1,11 @@
 
 'use server';
 
-import { auth as serverAuth } from '@/lib/firebase-admin';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { z } from 'zod';
-import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+
 
 const emailSchema = z.string().email({ message: 'Please enter a valid email address.' });
 const passwordSchema = z.string().min(6, { message: 'Password must be at least 6 characters long.' });
@@ -39,6 +39,9 @@ export async function signup(prevState: SignupState, formData: FormData): Promis
     if (email === 'admin@campusmind.app') {
       await updateProfile(userCredential.user, { displayName: 'Admin' });
     }
+     const idToken = await userCredential.user.getIdToken();
+    cookies().set('firebase-session', idToken, { httpOnly: true, secure: true, path: '/' });
+
 
     return { success: true, message: 'Signup successful! Redirecting...' };
   } catch (error: any) {
@@ -73,45 +76,45 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
   const { email, password } = result.data;
   
-  // Special case to create the admin user if they don't exist and are trying to log in.
-   if (email === 'admin@campusmind.app' && password === 'adminpwd') {
-      try {
-        const auth = getAuth(app);
-        // Attempt to sign in first.
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error: any) {
-         // If the admin user does not exist, create it.
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-          try {
-            const auth = getAuth(app);
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            // Set the display name for the newly created admin user.
-            await updateProfile(userCredential.user, { displayName: 'Admin' });
-          } catch (createError: any) {
-            return { success: false, message: 'Failed to create admin account. It may already exist with a different password.' };
-          }
-        } else {
-            // If another error occurred (like wrong password), fall through to the generic error handling.
-            return { success: false, message: 'Invalid email or password for admin. Please try again.' };
+  try {
+    const auth = getAuth(app);
+    let userCredential;
+    
+    // Special case to create the admin user if they don't exist and are trying to log in.
+    if (email === 'admin@campusmind.app') {
+        try {
+            userCredential = await signInWithEmailAndPassword(auth, email, password);
+        } catch (signInError: any) {
+            if (signInError.code === 'auth/user-not-found' || signInError.code === 'auth/invalid-credential') {
+                try {
+                    userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await updateProfile(userCredential.user, { displayName: 'Admin' });
+                } catch (createError: any) {
+                    return { success: false, message: 'Failed to create admin account. It may already exist with a different password.' };
+                }
+            } else {
+                 return { success: false, message: 'Invalid email or password. Please try again.' };
+            }
         }
-      }
-  } else {
-      try {
-        const auth = getAuth(app);
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error: any) {
-        return { success: false, message: 'Invalid email or password. Please try again.' };
-      }
-  }
+    } else {
+        userCredential = await signInWithEmailAndPassword(auth, email, password);
+    }
+    
+    const idToken = await userCredential.user.getIdToken();
+    cookies().set('firebase-session', idToken, { httpOnly: true, secure: true, path: '/' });
 
-  // If we reach here, login was successful, so we redirect.
-  redirect('/');
+    return { success: true, message: 'Login successful! Redirecting...' };
+
+  } catch (error: any) {
+    return { success: false, message: 'Invalid email or password. Please try again.' };
+  }
 }
 
 export async function logout() {
   try {
     const auth = getAuth(app);
     await signOut(auth);
+    cookies().delete('firebase-session');
   } catch (error) {
     console.error('Error signing out:', error);
   }
@@ -154,4 +157,3 @@ export async function updateUserProfile(data: { displayName?: string, photoURL?:
         return { success: false, message: 'Failed to update profile.' };
     }
 }
-    
