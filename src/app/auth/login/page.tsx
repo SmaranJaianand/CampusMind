@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { login, type LoginState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ import Link from 'next/link';
 import { AlertCircle, Smartphone } from 'lucide-react';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 const initialLoginState: LoginState = {
@@ -60,7 +59,6 @@ export default function LoginPage() {
             title: "Login Successful!",
             description: state.message,
         });
-        // We now handle the redirect on the client after the server action is successful.
         router.replace('/');
     }
   }, [state.success, state.message, router, toast]);
