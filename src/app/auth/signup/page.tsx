@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signup, type SignupState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { AlertCircle, Smartphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -55,17 +54,22 @@ export default function SignupPage() {
   const { toast } = useToast();
   
   useEffect(() => {
+    if (!state.success && state.message) {
+      toast({
+          variant: 'destructive',
+          title: "Signup Failed",
+          description: state.message,
+      });
+    }
+
     if (state.success) {
       toast({
           title: "Account Created!",
-          description: state.message,
+          description: state.message || "Redirecting...",
       });
-      const timer = setTimeout(() => {
-        router.replace('/');
-      }, 1500);
-      return () => clearTimeout(timer);
+      router.replace('/');
     }
-  }, [state.success, state.message, router, toast]);
+  }, [state, router, toast]);
 
   return (
     <TooltipProvider>
@@ -77,14 +81,6 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {state.message && !state.success && (
-            <Alert variant={'destructive'}>
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{'Signup Failed'}</AlertTitle>
-              <AlertDescription>{state.message}</AlertDescription>
-            </Alert>
-          )}
-
           <form action={formAction} className="grid gap-4">
               <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
