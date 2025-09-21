@@ -1,7 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState, useTransition } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useEffect, useState, useTransition } from 'react';
 import { login } from '@/app/auth/actions';
 import type { AuthState } from '@/app/auth/actions';
 import { Button } from '@/components/ui/button';
@@ -56,7 +55,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  const [state, formAction] = useActionState(login, initialLoginState);
+  const [state, setState] = useState<AuthState>(initialLoginState);
 
   useEffect(() => {
     if (state.success) {
@@ -72,13 +71,15 @@ export default function LoginPage() {
         description: state.message,
       });
     }
-  }, [state.success, state.message, router, toast]);
+  }, [state, router, toast]);
 
-  const handleFormSubmit = async (formData: FormData) => {
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
     startTransition(async () => {
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
-
       try {
         let userCredential: UserCredential;
         
@@ -86,14 +87,18 @@ export default function LoginPage() {
           userCredential = await signInWithEmailAndPassword(auth, email, password);
         } catch (error: any) {
           if (email === 'admin@campusmind.app' && error.code === 'auth/user-not-found') {
+            // If admin user does not exist, create it.
             userCredential = await createUserWithEmailAndPassword(auth, email, password);
           } else {
+            // For other errors or other users, re-throw the error.
             throw error;
           }
         }
         
+        // If we have a user credential, get the ID token and call the server action.
         const idToken = await userCredential.user.getIdToken();
-        await formAction(idToken);
+        const result = await login(idToken);
+        setState(result);
 
       } catch (error: any) {
         const defaultMessage = 'An unknown error occurred.';
@@ -101,11 +106,7 @@ export default function LoginPage() {
           ? 'Invalid email or password.'
           : error.message || defaultMessage;
         
-        toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: message,
-        });
+        setState({ success: false, message });
       }
     });
   };
@@ -120,7 +121,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <form action={handleFormSubmit} className="grid gap-4">
+          <form onSubmit={handleFormSubmit} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" placeholder="m@example.com" required />
