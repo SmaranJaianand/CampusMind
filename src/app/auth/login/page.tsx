@@ -51,21 +51,21 @@ function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
 
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, initialLoginState);
-  const router = useRouter();
   const { toast } = useToast();
   
   useEffect(() => {
     if (state.success) {
       toast({
         title: "Login Successful!",
-        description: "You've successfully signed in.",
+        description: "You've successfully signed in. Redirecting...",
       });
       const timer = setTimeout(() => {
-        router.replace('/');
+        // Force a full page reload to ensure auth state is updated
+        window.location.href = '/';
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [state.success, router, toast]);
+  }, [state.success, toast]);
 
   return (
     <TooltipProvider>
