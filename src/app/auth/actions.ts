@@ -112,8 +112,6 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
 
 export async function logout() {
   try {
-    const auth = getAuth(app);
-    await signOut(auth);
     cookies().delete('firebase-session');
   } catch (error) {
     console.error('Error signing out:', error);
