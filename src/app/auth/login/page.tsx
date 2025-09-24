@@ -115,6 +115,20 @@ export default function LoginPage() {
     <TooltipProvider>
       <Card className="w-full max-w-sm">
         <CardHeader>
+          <CardTitle className="text-2xl text-center">Login Disabled</CardTitle>
+          <CardDescription className="text-center">
+            Login and user registration are temporarily disabled.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+           <p className="text-sm text-muted-foreground text-center">
+            The authentication system is currently undergoing maintenance. Please check back later.
+           </p>
+        </CardContent>
+      </Card>
+      {/*
+      <Card className="w-full max-w-sm">
+        <CardHeader>
           <CardTitle className="text-2xl text-center">Login</CardTitle>
           <CardDescription className="text-center">
             Use your email and password to sign in.
@@ -178,6 +192,7 @@ export default function LoginPage() {
           </p>
         </CardFooter>
       </Card>
+      */}
     </TooltipProvider>
   );
 }
