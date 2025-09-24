@@ -1,6 +1,6 @@
-# CampusMind Application User Manual
+# Mannan Application User Manual
 
-Welcome to the CampusMind developer manual. This document provides a complete overview of the application's structure, making it easier for collaborators to understand and work with the codebase.
+Welcome to the Mannan developer manual. This document provides a complete overview of the application's structure, making it easier for collaborators to understand and work with the codebase.
 
 ## Tech Stack
 

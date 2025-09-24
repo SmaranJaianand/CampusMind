@@ -5,7 +5,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'CampusMind',
+  title: 'Mannan',
   description: 'Your on-campus companion for mental wellness.',
 };
 

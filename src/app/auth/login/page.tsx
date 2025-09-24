@@ -86,7 +86,7 @@ export default function LoginPage() {
         try {
           userCredential = await signInWithEmailAndPassword(auth, email, password);
         } catch (error: any) {
-          if (email === 'admin@campusmind.app' && error.code === 'auth/user-not-found') {
+          if (email === 'admin@mannan.app' && error.code === 'auth/user-not-found') {
             // If admin user does not exist, create it.
             userCredential = await createUserWithEmailAndPassword(auth, email, password);
           } else {

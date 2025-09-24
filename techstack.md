@@ -1,6 +1,6 @@
-# CampusMind Application: In-Depth Tech Stack
+# Mannan Application: In-Depth Tech Stack
 
-This document provides a comprehensive overview of the technologies, libraries, and architectural choices that power the CampusMind application.
+This document provides a comprehensive overview of the technologies, libraries, and architectural choices that power the Mannan application.
 
 ---
 

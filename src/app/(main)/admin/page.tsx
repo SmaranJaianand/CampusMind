@@ -1,4 +1,4 @@
-import { auth as adminAuth } from '@/lib/firebase-admin';
+import { auth } from '@/lib/firebase-admin';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,19 +13,19 @@ import {
 
 
 async function getUsers() {
-    // If adminAuth is not initialized, we can't fetch users.
-    if (!adminAuth) {
+    // If auth is not initialized, we can't fetch users.
+    if (!auth) {
         console.log("Firebase Admin not initialized. Skipping user fetch.");
         return [];
     }
 
     try {
-        const userRecords = await adminAuth.listUsers();
+        const userRecords = await auth.listUsers();
         const users = userRecords.users.map((user) => ({
           uid: user.uid,
           name: user.displayName || 'No Name',
           email: user.email!,
-          role: user.email === 'admin@campusmind.app' ? 'Admin' : 'User',
+          role: user.email === 'admin@mannan.app' ? 'Admin' : 'User',
           status: user.disabled ? 'Inactive' : 'Active',
           avatar: user.photoURL || `https://picsum.photos/seed/${user.uid}/40/40`,
         }));
@@ -41,7 +41,7 @@ async function getUsers() {
 
 export default async function AdminPage() {
   const users = await getUsers();
-  const isAuthReady = !!adminAuth;
+  const isAuthReady = !!auth;
 
 
   return (
